@@ -39,13 +39,15 @@ export function startCloudPlanner({root,getTasks,setTasks,isBusy,notify}){
     const url=URL.createObjectURL(new Blob([JSON.stringify(doc,null,2)],{type:'application/json'}));
     const a=document.createElement('a');a.href=url;a.download=`planner-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
-  async function connect(){
+  async function connect(restore=false){
     if(inFlight)return;
     if(isBusy()){notify('Vispirms aizveriet uzdevuma logu.');return;}
     if(pending)download(pending.doc);
-    setTasks([]);user=null;store=null;pending=null;account.disconnect();setState('loading','Pieslēdzas Google kontam…');
+    setTasks([]);user=null;store=null;pending=null;if(!restore)account.disconnect();setState('loading',restore?'Atjauno Google savienojumu…':'Pieslēdzas Google kontam…');
     try{
-      user=await account.connect();store=new DriveStore(account);
+      user=restore?await account.restore():await account.connect();
+      if(!user){setState('disconnected','Pieslēdzieties Google kontam, lai atvērtu uzdevumus.');return;}
+      store=new DriveStore(account);
       const doc=await store.load();
       const raw=localStorage.getItem(key());
       if(raw){
@@ -118,5 +120,5 @@ export function startCloudPlanner({root,getTasks,setTasks,isBusy,notify}){
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refresh();});
   window.addEventListener('beforeunload',event=>{if(pending){event.preventDefault();event.returnValue='';}});
   if(!account.clientId)message='Google pieslēgšanās vēl nav konfigurēta. Skatiet projekta README.';
-  render();return {save};
+  render();if(account.clientId)void connect(true);return {save};
 }

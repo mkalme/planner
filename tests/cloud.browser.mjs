@@ -14,7 +14,7 @@ try{
   let doc=null,version=0,failSave=false,account=1,deny=false,unauthorized=false;
   const accounts=new Map();
   await context.route('**/config.js',r=>r.fulfill({contentType:'application/javascript',body:'window.PLANNER_CONFIG={googleClientId:"test.apps.googleusercontent.com"}'}));
-  await context.route('https://accounts.google.com/gsi/client',r=>r.fulfill({contentType:'application/javascript',body:`window.google={accounts:{oauth2:{initTokenClient(options){return {requestAccessToken(){setTimeout(()=>options.callback(window.mockDeny?{error:'access_denied'}:{access_token:'mock',expires_in:3600}),0);}}}}}};`}));
+  await context.route('https://accounts.google.com/gsi/client',r=>r.fulfill({contentType:'application/javascript',body:`window.oauthRequests=0;window.google={accounts:{oauth2:{initTokenClient(options){return {requestAccessToken(){window.oauthRequests++;setTimeout(()=>options.callback(window.mockDeny?{error:'access_denied'}:{access_token:'mock',expires_in:3600}),0);}}}}}};`}));
   await context.route('https://www.googleapis.com/**',async route=>{
     const url=new URL(route.request().url());const method=route.request().method();
     const reply=(data,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});
@@ -73,7 +73,10 @@ try{
   await page.locator('#app[data-readonly]').waitFor();await ready();assert.equal(doc.tasks.length,1);assert.match(doc.tasks[0].comments[0].comment,/Prioritāte/);
   const id=doc.tasks[0].id,selector=`[data-task-id="${id}"]`;
   await page.locator(`${selector} [data-action=status]`).click();await page.locator('#quick-status [data-status=complete]').click();await ready();assert.equal(doc.tasks[0].status,'complete');
-  await page.reload();await connect();assert.equal(await page.locator(`${selector}.is-complete`).count(),1);
+  const originalExpiry=await page.evaluate(()=>JSON.parse(sessionStorage.getItem('mkalme-planner:google-session')).expiresAt);
+  await page.reload();await ready();assert.equal(await page.locator(`${selector}.is-complete`).count(),1);
+  assert.equal(await page.evaluate(()=>window.oauthRequests),0,'Refresh restores the session without opening Google authorization');
+  assert.equal(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('mkalme-planner:google-session')).expiresAt),originalExpiry,'Refresh does not extend token lifetime');
   await page.locator(`${selector} [data-action=edit]`).click();await page.locator('#task-comment').fill('Saglabāta piezīme');
   await page.locator('[data-action=post-comment]').click();await ready();
   assert.equal(await page.locator('#task-dialog').evaluate(n=>n.open),true,'Saving a comment must preserve the open editor');
@@ -82,7 +85,7 @@ try{
   failSave=true;await page.locator(`${selector} [data-action=status]`).click();await page.locator('#quick-status [data-status=new]').click();
   await page.locator('#account .account-error').waitFor();
   assert.ok(await page.evaluate(()=>localStorage.getItem('mkalme-planner:pending:account-1')));
-  await page.reload();await accountAction('Pieslēgt Google kontu');await page.getByText('Atrastas nesaglabātas izmaiņas.',{exact:false}).waitFor();
+  await page.reload();await page.getByText('Atrastas nesaglabātas izmaiņas.',{exact:false}).waitFor();
   failSave=false;await accountAction('Mēģināt saglabāt vēlreiz');await ready();assert.equal(doc.tasks[0].status,'new');
   // Stale data must not overwrite a newer remote version.
   version++;doc={...doc,writeId:'another-device'};
@@ -124,6 +127,16 @@ try{
   assert.equal(await page.locator('[data-task-id="dense-34"]').evaluate(n=>{const a=n.getBoundingClientRect(),b=n.closest('.column-tasks').getBoundingClientRect();return a.bottom<=b.bottom+1}),true,'Last task remains reachable');
   await page.setViewportSize({width:390,height:844});
   for(const view of ['day','week','month','year']){await page.locator(`[data-view="${view}"]`).click();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);}
-  await page.screenshot({path:'artifacts/mobile.png',fullPage:true});assert.deepEqual(errors,[]);
-  console.log('Pages subpath, Google denial/expiry, Drive initialization/save/reload, recovery, conflicts, import/export, offline protection, account isolation and responsive views passed.');
+  await page.screenshot({path:'artifacts/mobile.png',fullPage:true});
+  // An expired or revoked saved grant must never expose tasks or start a popup automatically.
+  await page.evaluate(()=>{const key='mkalme-planner:google-session',saved=JSON.parse(sessionStorage.getItem(key));saved.expiresAt=Date.now()-1;sessionStorage.setItem(key,JSON.stringify(saved));});
+  await page.reload();await page.locator('#account[data-state=disconnected]').waitFor();
+  assert.equal(await page.locator('[data-task-id]').count(),0);assert.equal(await page.evaluate(()=>window.oauthRequests),0);
+  assert.equal(await page.evaluate(()=>sessionStorage.getItem('mkalme-planner:google-session')),null);
+  await connect();unauthorized=true;await page.reload();await page.locator('#account[data-state=error]').waitFor();
+  assert.equal(await page.locator('[data-task-id]').count(),0);assert.equal(await page.evaluate(()=>sessionStorage.getItem('mkalme-planner:google-session')),null);
+  await connect();await accountAction('Iziet');await page.reload();await page.locator('#account[data-state=disconnected]').waitFor();
+  assert.equal(await page.locator('[data-task-id]').count(),0);assert.equal(await page.evaluate(()=>sessionStorage.getItem('mkalme-planner:google-session')),null);
+  assert.deepEqual(errors,[]);
+  console.log('Pages subpath, Google denial/expiry, automatic session restore, expired/revoked grants, sign-out, Drive save/reload, recovery, conflicts, import/export, offline protection, account isolation and responsive views passed.');
 }finally{await browser.close();server?.kill();}
