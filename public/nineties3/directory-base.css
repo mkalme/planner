@@ -1,0 +1,33 @@
+/* The directory family layout, scoped to new variations. */
+:root[data-family="directory"][data-theme="light"]{--bg:#fff;--surface:#fff;--surface-alt:#ffffcc;--ink:#000;--muted:#444;--subtle:#555;--line:#aaa;--strong-line:#000;--accent:#00f;--accent-bg:#ffff99;--button:#ddd;--button-ink:#000}
+[data-family="directory"] body{padding-top:16px}
+[data-family="directory"] .app-shell{grid-template-columns:175px minmax(0,1fr);gap:22px;max-width:1440px}
+[data-family="directory"] .sidebar{padding:9px 12px 0 0;border-right:1px solid var(--line)}
+[data-family="directory"] .sidebar::before{content:'My Calendar';font-size:18px;border-bottom:3px double var(--line);padding-bottom:8px}
+[data-family="directory"] .sidebar .mini-calendar{border:0;padding:0}
+[data-family="directory"] .sidebar .mini-heading{background:var(--surface-alt);border:1px solid var(--line);padding:5px;margin-bottom:9px;justify-content:center;flex-wrap:wrap}
+[data-family="directory"] .sidebar .mini-heading>span{width:100%;text-align:center}
+[data-family="directory"] .sidebar .mini-heading>div{justify-content:center}
+[data-family="directory"] .planner-header{border-bottom:1px solid var(--strong-line);padding-bottom:13px;margin-bottom:15px;align-items:center;flex-direction:column;gap:9px}
+[data-family="directory"] .planner-header h1{font-family:Georgia,"Times New Roman",serif;font-size:44px;font-style:italic;letter-spacing:-1.5px;color:#990000}
+[data-family="directory"] .header-actions{align-self:flex-end}
+[data-family="directory"] .planner-toolbar{border-bottom:3px double var(--line);padding-bottom:12px;margin-bottom:15px}
+[data-family="directory"] .view-switch button[aria-current]{background:var(--surface-alt)}
+[data-family="directory"] .week-grid{border:1px solid var(--line);background:var(--surface);gap:0;min-height:555px}
+[data-family="directory"] .day-column{padding:0 7px 9px}
+[data-family="directory"] .column-heading{background:var(--surface-alt);border-bottom:1px solid var(--line);margin:0 -7px 9px;min-height:62px}
+[data-family="directory"] .column-heading b{font-size:25px}
+[data-family="directory"][data-theme="light"] .day-column.is-today .column-heading{background:#ffff66}
+[data-family="directory"] .compact .task-title{font-size:13px;text-decoration:underline;color:var(--accent);font-weight:700;line-height:1.4}
+[data-family="directory"] .task-card.is-complete .task-title{font-weight:400;text-decoration:line-through;color:var(--muted)}
+[data-family="directory"] .task-card{border-width:0 0 1px!important;border-style:solid!important;border-color:var(--line)!important;padding-top:9px;padding-bottom:9px}
+[data-family="directory"][data-theme="light"] .task-card{background:none;color:#000;border-left:5px solid var(--classic-color)!important}
+[data-family="directory"][data-theme="light"] .task-card.is-missed{background:none}
+[data-family="directory"][data-theme="light"] .task-card.is-complete{background:none;border-left-color:var(--classic-complete)!important;color:#555}
+[data-family="directory"][data-theme="light"] .task-card.is-canceled{background:none;border-left-color:#aaa!important;color:#555}
+[data-family="directory"] .task-state{margin-top:2px}
+[data-family="directory"] .column-add{background:var(--surface-alt);border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-left:-7px;margin-right:-7px;min-height:29px;text-decoration:underline}
+[data-family="directory"] .task-divider{border-top:1px solid var(--line);margin:12px 0}
+[data-family="directory"] .progress-line{height:5px;border:0}
+[data-family="directory"] .progress-line i{height:5px;background:#990000}
+

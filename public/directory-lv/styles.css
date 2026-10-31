@@ -1,0 +1,3 @@
+/* Iepriekšējais izskats; vienīgā stila izmaiņa ir pelēka sānjosla. */
+[data-study="directory-compact"] .sidebar{background:#eee;box-shadow:-100vmax 0 0 100vmax #eee}
+[data-study="directory-compact"] .sidebar::before{content:'Kalendārs'}

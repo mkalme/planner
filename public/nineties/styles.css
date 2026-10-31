@@ -1,0 +1,111 @@
+/* New style studies only. The original planner files are preserved. */
+[data-study] .study-source{max-width:1440px;margin:17px auto 0;padding:9px 0 0;border-top:1px solid var(--line);font:12px/1.6 "Times New Roman",Times,serif;color:var(--muted)}
+[data-study] .study-source a{color:var(--accent);text-decoration:underline}
+[data-study] .study-source details{margin-top:7px}
+[data-study] .study-source summary{cursor:pointer;width:max-content}
+[data-study] .study-source p{margin:6px 0 0}
+[data-study] .task-content:hover .task-title{text-decoration:underline}
+[data-study] .task-card.is-complete .task-content:hover .task-title{text-decoration:line-through underline}
+
+/* 1. A research page: default type, blue links and document rules. */
+:root[data-study="research"][data-theme="light"]{--bg:#fff;--surface:#fff;--surface-alt:#eee;--ink:#000;--muted:#333;--subtle:#444;--line:#aaa;--strong-line:#444;--accent:#00f;--accent-bg:#ffffcc;--button:#ddd;--button-ink:#000}
+[data-study="research"] body{padding-top:20px}
+[data-study="research"] .app-shell{grid-template-columns:168px minmax(0,1fr);gap:24px;max-width:1440px}
+[data-study="research"] .sidebar{border:0;padding-top:3px;padding-right:0}
+[data-study="research"] .sidebar::before{content:'Calendar';font-size:20px;border:0;padding:0;margin:0 0 17px}
+[data-study="research"] .sidebar .mini-calendar{border:0;padding:0}
+[data-study="research"] .sidebar .mini-heading{font-size:14px;border-bottom:1px solid var(--line)}
+[data-study="research"] .sidebar-bottom{margin-top:24px}
+[data-study="research"] .planner-header{border-bottom:1px solid var(--strong-line);padding-bottom:15px;margin-bottom:17px}
+[data-study="research"] .planner-header h1{font-size:33px;letter-spacing:0}
+[data-study="research"] .week-grid{border:0;gap:13px;min-height:540px;background:none}
+[data-study="research"] .day-column{border:0;padding:0;background:none}
+[data-study="research"] .column-heading{border-top:1px solid var(--strong-line);border-bottom:1px solid var(--line);background:none;margin:0 0 12px;padding:6px 0;min-height:62px}
+[data-study="research"][data-theme="light"] .day-column.is-today .column-heading{background:#ffffcc;padding-left:5px;padding-right:5px}
+[data-study="research"] .column-heading>button span{font-size:13px}
+[data-study="research"] .column-heading b{font-size:24px}
+[data-study="research"] .task-card{margin-bottom:9px}
+[data-study="research"][data-theme="light"] .task-card{background:none;border:0;border-left:5px solid var(--classic-color);color:#000;padding-left:8px}
+[data-study="research"][data-theme="light"] .task-card.is-missed{background:none;border-left-color:var(--classic-color)}
+[data-study="research"][data-theme="light"] .task-card.is-complete{background:none;border-left-color:var(--classic-complete);color:#555}
+[data-study="research"][data-theme="light"] .task-card.is-canceled{background:none;border-left-color:#aaa;color:#555}
+[data-study="research"] .task-title{color:var(--accent);text-decoration:underline}
+[data-study="research"] .is-complete .task-title{color:var(--muted);text-decoration:line-through}
+[data-study="research"] .task-meta{font-size:10px;line-height:1.5;gap:4px 7px}
+[data-study="research"] .compact .task-title{font-size:13px;line-height:1.4}
+[data-study="research"] .column-add{justify-content:flex-start;margin-left:5px;padding-top:7px;border-top:1px dotted var(--line)}
+[data-study="research"] .task-divider{margin-top:14px}
+[data-study="research"] .month-cell{border-color:var(--line)}
+[data-study="research"] .year-mini{border-bottom:1px solid var(--line)}
+
+/* 2. A 1996 directory: a serif masthead, linked entries and yellow section bars. */
+:root[data-study="directory"][data-theme="light"]{--bg:#fff;--surface:#fff;--surface-alt:#ffffcc;--ink:#000;--muted:#444;--subtle:#555;--line:#aaa;--strong-line:#000;--accent:#00f;--accent-bg:#ffff99;--button:#ddd;--button-ink:#000}
+[data-study="directory"] body{padding-top:16px}
+[data-study="directory"] .app-shell{grid-template-columns:175px minmax(0,1fr);gap:22px;max-width:1440px}
+[data-study="directory"] .sidebar{padding:9px 12px 0 0;border-right:1px solid var(--line)}
+[data-study="directory"] .sidebar::before{content:'My Calendar';font-size:18px;border-bottom:3px double var(--line);padding-bottom:8px}
+[data-study="directory"] .sidebar .mini-calendar{border:0;padding:0}
+[data-study="directory"] .sidebar .mini-heading{background:var(--surface-alt);border:1px solid var(--line);padding:5px;margin-bottom:9px;justify-content:center;flex-wrap:wrap}
+[data-study="directory"] .sidebar .mini-heading>span{width:100%;text-align:center}
+[data-study="directory"] .sidebar .mini-heading>div{justify-content:center}
+[data-study="directory"] .planner-header{border-bottom:1px solid var(--strong-line);padding-bottom:13px;margin-bottom:15px;align-items:center;flex-direction:column;gap:9px}
+[data-study="directory"] .planner-header h1{font-family:Georgia,"Times New Roman",serif;font-size:44px;font-style:italic;letter-spacing:-1.5px;color:#990000}
+[data-study="directory"] .header-actions{align-self:flex-end}
+[data-study="directory"] .planner-toolbar{border-bottom:3px double var(--line);padding-bottom:12px;margin-bottom:15px}
+[data-study="directory"] .view-switch button[aria-current]{background:var(--surface-alt)}
+[data-study="directory"] .week-grid{border:1px solid var(--line);background:var(--surface);gap:0;min-height:555px}
+[data-study="directory"] .day-column{padding:0 7px 9px}
+[data-study="directory"] .column-heading{background:var(--surface-alt);border-bottom:1px solid var(--line);margin:0 -7px 9px;min-height:62px}
+[data-study="directory"] .column-heading b{font-size:25px}
+[data-study="directory"][data-theme="light"] .day-column.is-today .column-heading{background:#ffff66}
+[data-study="directory"] .compact .task-title{font-size:13px;text-decoration:underline;color:var(--accent);font-weight:700;line-height:1.4}
+[data-study="directory"] .task-card.is-complete .task-title{font-weight:400;text-decoration:line-through;color:var(--muted)}
+[data-study="directory"] .task-card{border-width:0 0 1px!important;border-style:solid!important;border-color:var(--line)!important;padding-top:9px;padding-bottom:9px}
+[data-study="directory"][data-theme="light"] .task-card{background:none;color:#000;border-left:5px solid var(--classic-color)!important}
+[data-study="directory"][data-theme="light"] .task-card.is-missed{background:none}
+[data-study="directory"][data-theme="light"] .task-card.is-complete{background:none;border-left-color:var(--classic-complete)!important;color:#555}
+[data-study="directory"][data-theme="light"] .task-card.is-canceled{background:none;border-left-color:#aaa!important;color:#555}
+[data-study="directory"] .task-state{margin-top:2px}
+[data-study="directory"] .column-add{background:var(--surface-alt);border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-left:-7px;margin-right:-7px;min-height:29px;text-decoration:underline}
+[data-study="directory"] .task-divider{border-top:1px solid var(--line);margin:12px 0}
+[data-study="directory"] .progress-line{height:5px;border:0}
+[data-study="directory"] .progress-line i{height:5px;background:#990000}
+
+/* 3. A personal homepage: an original tiled star pattern and bright table headers. */
+:root[data-study="homepage"][data-theme="light"]{--bg:#000018;--surface:#fff;--surface-alt:#ccc;--ink:#000;--muted:#333;--subtle:#333;--line:#808080;--strong-line:#000;--accent:#00f;--accent-bg:#ffff99;--button:#c0c0c0;--button-ink:#000}
+[data-study="homepage"] body{background-color:#000018;background-image:url('stars.svg');padding:23px 20px 20px}
+[data-study="homepage"] .app-shell{grid-template-columns:175px minmax(0,1fr);gap:17px;max-width:1440px;background:none}
+[data-study="homepage"] .sidebar{border-right:0;color:#fff;padding:0 0 0 0}
+[data-study="homepage"] .sidebar::before{content:'* Calendar *';background:#000080;border:2px ridge #9999ff;padding:7px 4px;text-align:center;font:700 17px "Times New Roman",serif;color:#ffff00;letter-spacing:.5px;margin-bottom:12px}
+[data-study="homepage"] .sidebar .mini-calendar{border:2px ridge #9999ff;background:var(--surface);color:var(--ink);padding:7px 5px}
+[data-study="homepage"] .sidebar .mini-heading{font-size:14px}
+[data-study="homepage"] .sidebar-bottom{border-top:1px solid #9999ff;margin-top:24px;padding-top:12px}
+[data-study="homepage"] .progress-label,[data-study="homepage"] .progress-label b,[data-study="homepage"] .progress-label b span{color:#fff}
+[data-study="homepage"] .progress-line{border:1px solid #9999ff;background:#000}
+[data-study="homepage"] .progress-line i{background:#00ffff}
+[data-study="homepage"] .planner-header{padding:5px 2px 15px;border-bottom:3px double #9999ff;margin-bottom:15px;color:#fff;gap:20px;align-items:center}
+[data-study="homepage"] .planner-header h1{font-family:Georgia,"Times New Roman",serif;font-size:33px;letter-spacing:.6px;color:#ffff00;font-weight:700;text-shadow:2px 2px #660099}
+[data-study="homepage"] .planner-header h1::before,[data-study="homepage"] .planner-header h1::after{content:' * ';font:20px "Times New Roman",serif;color:#00ffff}
+[data-study="homepage"] .planner-toolbar{padding:9px 11px;background:var(--surface);border:2px ridge #9999ff;margin-bottom:13px}
+[data-study="homepage"] .date-controls h2{font-size:16px}
+[data-study="homepage"] .week-grid{border:2px ridge #9999ff;padding:3px;gap:3px;background:#000080;min-height:555px}
+[data-study="homepage"] .day-column{border:1px solid #9999ff;padding:0 6px 8px;background:var(--surface)}
+[data-study="homepage"] .column-heading{background:#000080;color:#fff;margin:0 -6px 8px;padding:7px 7px 8px;border-bottom:1px solid #9999ff;min-height:66px}
+[data-study="homepage"] .column-heading>button span,[data-study="homepage"] .column-count{color:#fff}
+[data-study="homepage"] .column-heading b{color:#ffff00;font-size:25px}
+[data-study="homepage"] .day-column.is-today .column-heading{background:#660099}
+[data-study="homepage"][data-theme="light"] .day-column.is-today .column-heading{background:#660099}
+[data-study="homepage"] .today-marker{color:#ffff00;font-weight:700}
+[data-study="homepage"] .task-card{border:1px solid #808080!important}
+[data-study="homepage"] .column-add{border:1px outset var(--line);background:var(--surface-alt);min-height:27px;margin-top:10px;font-size:12px}
+[data-study="homepage"] .planner-footer{color:#ccc;border-top:1px solid #9999ff}
+[data-study="homepage"] .study-source{color:#ccc;border-color:#9999ff}
+[data-study="homepage"] .study-source a{color:#99ffff}
+[data-study="homepage"] .month-weekdays>span{color:#fff}
+[data-study="homepage"] .year-grid{padding:14px;background:var(--surface);border:2px ridge #9999ff}
+
+/* Keep the left calendar on narrow screens; the board scrolls inside its pane. */
+@media(max-width:1200px){[data-study] .planner-header{flex-wrap:wrap;gap:12px}[data-study="directory"] .planner-header h1{font-size:37px}[data-study="homepage"] .planner-header h1{font-size:29px}}
+@media(max-width:1000px){[data-study] .app-shell{grid-template-columns:148px minmax(0,1fr);gap:15px}[data-study="homepage"] .sidebar .mini-heading{font-size:12px;flex-wrap:wrap;justify-content:center}[data-study="homepage"] .sidebar .mini-heading>span{width:100%;text-align:center}[data-study="homepage"] .sidebar .mini-heading>div{justify-content:center}}
+@media(max-width:760px){[data-study] .app-shell{grid-template-columns:130px minmax(0,1fr);gap:12px}[data-study="research"] .week-grid{min-width:1020px;gap:13px}[data-study="directory"] .week-grid{min-width:1020px}[data-study="homepage"] body{padding:17px 12px}[data-study="homepage"] .week-grid{min-width:1020px}[data-study="homepage"] .sidebar::before{font-size:14px;padding:6px 2px}[data-study="homepage"] .planner-toolbar{padding:7px}[data-study="homepage"] .planner-header h1{font-size:27px}[data-study="homepage"] .planner-header h1::before,[data-study="homepage"] .planner-header h1::after{font-size:14px}[data-study="directory"] .planner-header h1{font-size:34px}[data-study="research"] .planner-header h1{font-size:28px}[data-study] .planner-header{padding-bottom:12px;margin-bottom:13px}[data-study] .year-grid{grid-template-columns:1fr}[data-study="homepage"] .year-grid{padding:8px}[data-study] .study-source{font-size:11px}}
+@media(max-width:450px){[data-study] .app-shell{grid-template-columns:112px minmax(0,1fr);gap:10px}[data-study="research"] .sidebar::before{font-size:17px}[data-study="directory"] .sidebar::before{font-size:16px}[data-study="homepage"] body{padding:12px 8px}[data-study="homepage"] .sidebar::before{font-size:12px}[data-study="homepage"] .planner-header h1{font-size:24px}[data-study="homepage"] .planner-header h1::before,[data-study="homepage"] .planner-header h1::after{content:''}[data-study="directory"] .planner-header h1{font-size:31px}[data-study="research"] .planner-header h1{font-size:25px}[data-study] .header-actions{gap:9px}[data-study="research"] .month-tasks .task-title,[data-study="directory"] .month-tasks .task-title{font-size:9px}[data-study="research"] .month-tasks .task-card,[data-study="directory"] .month-tasks .task-card{border-left-width:3px!important}[data-study="homepage"] .month-tasks .task-card{border-width:1px!important}}

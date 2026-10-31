@@ -1,0 +1,100 @@
+/* Classic gray page with red accents and vertical task color bands. */
+[data-study="classic-bands"] .planner-header h1,[data-study="classic-bands"] .sidebar::before{color:#900}
+[data-study="classic-bands"] .planner-header{border-bottom:2px groove #900}
+[data-study="classic-bands"] .progress-line i{background:#900}
+[data-study="classic-bands"][data-theme="light"] .task-card{background:var(--surface);color:#000;border:1px solid #aaa;border-left:5px solid var(--classic-color);padding-left:8px}
+[data-study="classic-bands"][data-theme="light"] .task-card.is-missed{background:var(--surface);color:#000}
+[data-study="classic-bands"][data-theme="light"] .task-card.is-complete{background:var(--surface);color:#444;border-left-color:var(--classic-complete)}
+[data-study="classic-bands"][data-theme="light"] .task-card.is-canceled{background:#eee;color:#555;border-left-color:#aaa}
+
+/* Variations on the classic page: the same colored square task cards. */
+[data-family="classic"] .planner-header{margin-bottom:17px;padding-bottom:12px}
+[data-family="classic"] .planner-header h1{font-size:31px}
+[data-family="classic"] .column-heading{min-height:60px}
+[data-family="classic"] .column-heading b{font-size:24px}
+[data-family="classic"] .task-card{margin-bottom:7px}
+
+/* A plain paper planner, with the browser's serif type and thin rules. */
+:root[data-study="classic-paper"][data-theme="light"]{--bg:#fff;--surface:#fff;--surface-alt:#eee;--ink:#000;--muted:#444;--subtle:#555;--line:#aaa;--strong-line:#555;--accent:#00f;--accent-bg:#ffffcc}
+[data-study="classic-paper"] body{padding:23px 25px}
+[data-study="classic-paper"] .app-shell{grid-template-columns:165px minmax(0,1fr);gap:23px;max-width:1440px}
+[data-study="classic-paper"] .sidebar{border:0;padding-right:0}
+[data-study="classic-paper"] .sidebar::before{content:'Calendar';border-bottom:1px solid var(--strong-line);padding-bottom:8px;font-size:20px}
+[data-study="classic-paper"] .sidebar .mini-calendar{border:0;padding:0}
+[data-study="classic-paper"] .planner-header{border-bottom:3px double var(--strong-line)}
+[data-study="classic-paper"] .planner-header h1{font-weight:400;font-size:35px}
+[data-study="classic-paper"] .planner-toolbar{margin-bottom:14px}
+[data-study="classic-paper"] .week-grid{border:1px solid var(--strong-line);min-height:550px}
+[data-study="classic-paper"] .day-column{padding:0 8px 9px;border-color:var(--line)}
+[data-study="classic-paper"] .column-heading{margin:0 -8px 10px;padding:8px;border-bottom:1px solid var(--strong-line);background:var(--surface-alt)}
+[data-study="classic-paper"] .column-heading>button span{font-size:12px}
+[data-study="classic-paper"][data-theme="light"] .day-column.is-today .column-heading{background:#ffffcc}
+[data-study="classic-paper"] .column-add{border-top:1px dotted var(--line);justify-content:flex-start;padding-top:6px}
+[data-study="classic-paper"] .planner-footer{border-top:1px solid var(--strong-line)}
+
+/* A gray browser utility: navy title, a framed calendar and compact Arial. */
+:root[data-study="classic-office"][data-theme="light"]{--bg:#c0c0c0;--surface:#fff;--surface-alt:#ddd;--ink:#000;--muted:#333;--subtle:#444;--line:#808080;--strong-line:#000;--accent:#000080;--accent-bg:#ffffcc}
+[data-study="classic-office"] body{padding:16px}
+[data-study="classic-office"] .app-shell{grid-template-columns:178px minmax(0,1fr);gap:12px;max-width:1440px;font-family:Arial,Helvetica,sans-serif}
+[data-study="classic-office"] .sidebar{border:1px solid var(--line);padding:10px 8px;background:var(--surface-alt)}
+[data-study="classic-office"] .sidebar::before{content:'MONTH CALENDAR';font:700 11px Arial,sans-serif;border-bottom:1px solid var(--line);padding-bottom:9px}
+[data-study="classic-office"] .sidebar .mini-calendar{border:1px solid var(--line);padding:7px;background:var(--surface)}
+[data-study="classic-office"] .sidebar .mini-heading{font:700 12px Arial,sans-serif}
+[data-study="classic-office"] .sidebar .mini-date{font:11px Arial,sans-serif}
+[data-study="classic-office"] .planner-header{background:#000080;color:#fff;border:1px solid #000;margin:0 0 11px;padding:10px 12px;min-height:48px}
+[data-study="classic-office"] .planner-header h1{font:700 19px Arial,sans-serif;color:#fff}
+[data-study="classic-office"] .planner-toolbar{border:1px solid var(--line);padding:8px;margin-bottom:10px;background:var(--surface-alt)}
+[data-study="classic-office"] .date-controls h2{font:700 13px Arial,sans-serif}
+[data-study="classic-office"] .view-switch button{font:12px Arial,sans-serif}
+[data-study="classic-office"] .week-grid{border:1px solid var(--strong-line);min-height:555px}
+[data-study="classic-office"] .day-column{padding:0 6px 8px}
+[data-study="classic-office"] .column-heading{margin:0 -6px 9px;padding:7px;background:var(--surface-alt);border-bottom:1px solid var(--line)}
+[data-study="classic-office"] .column-heading>button span{font:11px Arial,sans-serif;text-transform:uppercase}
+[data-study="classic-office"] .column-heading b{font:700 22px Arial,sans-serif}
+[data-study="classic-office"] .task-card{padding:9px 6px}
+[data-study="classic-office"] .compact .task-title{font:11px/1.45 Arial,sans-serif}
+[data-study="classic-office"] .task-meta,[data-study="classic-office"] .compact .task-meta{font:9px/1.5 Arial,sans-serif}
+[data-study="classic-office"] .column-add{font:11px Arial,sans-serif;border:1px solid var(--line);background:var(--surface-alt);min-height:25px}
+[data-study="classic-office"] .primary-btn{font:11px Arial,sans-serif;background:#ddd;color:#000;border:1px solid #000;box-shadow:none}
+
+/* A narrow link directory, with a modest red masthead and yellow table heads. */
+[data-study="directory-compact"] body{padding:18px 24px}
+[data-study="directory-compact"] .app-shell{grid-template-columns:155px minmax(0,1fr);gap:19px}
+[data-study="directory-compact"] .planner-header{flex-direction:row;justify-content:space-between;border-bottom:1px solid var(--strong-line);gap:12px}
+[data-study="directory-compact"] .planner-header h1{font:700 29px "Times New Roman",Times,serif;color:#900;letter-spacing:0}
+[data-study="directory-compact"] .header-actions{align-self:center}
+[data-study="directory-compact"] .sidebar::before{content:'My Calendar';font-size:18px;border-bottom:1px solid var(--line)}
+[data-study="directory-compact"] .week-grid{min-height:535px}
+[data-study="directory-compact"] .day-column{padding:0 6px 8px}
+[data-study="directory-compact"] .column-heading{margin:0 -6px 5px;min-height:51px;padding:5px 6px}
+[data-study="directory-compact"] .column-heading b{font-size:21px}
+[data-study="directory-compact"] .task-card{padding:7px 5px;margin-bottom:5px;border-bottom:1px dotted var(--line)!important}
+[data-study="directory-compact"] .compact .task-title{font-size:12px;line-height:1.35}
+[data-study="directory-compact"] .compact .task-meta{font-size:9px;margin-top:6px;gap:5px}
+[data-study="directory-compact"] .column-add{margin-left:-6px;margin-right:-6px;min-height:25px}
+
+/* A cream directory index: centered serif heading and dark blue category bars. */
+:root[data-study="directory-index"][data-theme="light"]{--bg:#ffffee;--surface:#ffffee;--surface-alt:#ffffcc;--ink:#000;--muted:#444;--subtle:#555;--line:#aaa;--strong-line:#333;--accent:#00f;--accent-bg:#ffff99}
+[data-study="directory-index"] body{padding:24px}
+[data-study="directory-index"] .app-shell{grid-template-columns:175px minmax(0,1fr);gap:24px}
+[data-study="directory-index"] .sidebar{border:1px solid var(--line);padding:12px;background:var(--surface-alt)}
+[data-study="directory-index"] .sidebar::before{content:'Calendar Index';font-size:18px;text-align:center;border-bottom:1px solid var(--line)}
+[data-study="directory-index"] .sidebar .mini-heading{border:0;background:none}
+[data-study="directory-index"] .planner-header{border-bottom:3px double var(--strong-line);margin-bottom:17px;padding-bottom:15px}
+[data-study="directory-index"] .planner-header h1{font:700 37px Georgia,"Times New Roman",serif;color:#800000;letter-spacing:0;font-style:normal}
+[data-study="directory-index"] .header-actions{align-self:center}
+[data-study="directory-index"] .planner-toolbar{border:0;margin-bottom:13px;padding-bottom:0}
+[data-study="directory-index"] .week-grid{border:0;gap:12px;background:none;min-height:550px}
+[data-study="directory-index"] .day-column{padding:0;border:0}
+[data-study="directory-index"] .column-heading{margin:0 0 10px;background:#000080;color:#fff;border:0;padding:7px 8px;min-height:62px}
+[data-study="directory-index"][data-theme="light"] .day-column.is-today .column-heading{background:#000080}
+[data-study="directory-index"] .column-heading>button span,[data-study="directory-index"] .column-count{color:#fff}
+[data-study="directory-index"] .column-heading b{font-size:25px;color:#ffff99}
+[data-study="directory-index"] .today-marker{color:#ffff99}
+[data-study="directory-index"] .task-card{padding:9px 7px;border-bottom:1px solid var(--line)!important}
+[data-study="directory-index"] .compact .task-title{font-size:13px}
+[data-study="directory-index"] .column-add{margin:10px 0 0;background:none;text-align:left;justify-content:flex-start}
+
+@media(max-width:1000px){[data-variation] .app-shell{grid-template-columns:145px minmax(0,1fr);gap:15px}[data-study="classic-office"] .planner-header{flex-wrap:wrap;gap:9px}}
+@media(max-width:760px){[data-variation] body{padding:14px 12px}[data-variation] .app-shell{grid-template-columns:125px minmax(0,1fr);gap:12px}[data-variation] .week-grid{min-width:1020px}[data-variation] .planner-header{flex-wrap:wrap;gap:10px}[data-variation] .planner-header h1{font-size:27px}[data-study="classic-office"] .planner-header h1{font-size:18px}[data-variation] .sidebar .mini-heading{font-size:12px;flex-wrap:wrap;justify-content:center}[data-variation] .sidebar .mini-heading>span{width:100%;text-align:center}[data-variation] .sidebar::before{font-size:15px}[data-study="classic-office"] .sidebar::before{font-size:10px}}
+@media(max-width:450px){[data-variation] body{padding:12px 8px}[data-variation] .app-shell{grid-template-columns:110px minmax(0,1fr);gap:10px}[data-variation] .sidebar{padding-left:6px;padding-right:6px}[data-variation] .planner-header h1{font-size:24px}[data-study="classic-office"] .planner-header{padding:8px}[data-study="classic-office"] .planner-header h1{font-size:17px}[data-variation] .header-actions{gap:8px}[data-study="directory-index"] .sidebar::before{font-size:13px}}
