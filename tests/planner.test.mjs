@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {classicTaskColors,generateDayTaskHue,TASK_COLOR_HUES,TASK_PALETTE,getTaskColor,withStableTaskColors} from '../public/retro/1990s-colors.js';
+import {classicTaskColors,generateDayTaskHue,TASK_COLOR_HUES,TASK_PALETTE,getTaskColor,withStableTaskColors,prototypeBrightnessColor} from '../public/retro/1990s-colors.js';
 import {dateKey,fromKey,addDays,weekStart,monthDays,shiftPeriod,sortTasks,moveTask,updateTask,isMissed,seedTasks,validateTask,loadTasks,randomHue,createTask,addTaskComment} from '../public/planner.js';
 const make=(id,date='2026-10-31',order=0,status='new')=>({id,date,order,status,title:id,description:'A task',priority:'normal',hue:140,comments:[]});
 test('calendar dates cross month, leap-year, and week boundaries without UTC offsets',()=>{
@@ -139,19 +139,26 @@ test('regeneration avoids the previous visible color and prefers unused colors b
   const next=generateDayTaskHue(full,'2026-10-31',{previousHue:TASK_COLOR_HUES[0]});
   assert.notEqual(classicTaskColors(next).background,classicTaskColors(TASK_COLOR_HUES[0]).background);
 });
-test('8-bit task colors are distinct RGB332 shades visible on white with readable button symbols',()=>{
-  const redGreen=new Set(Array.from({length:8},(_,i)=>Math.round(i*255/7))),blue=new Set([0,85,170,255]),seen=new Set();
+test('32 indexed task colors remain distinct after matching prototype brightness, with readable button symbols',()=>{
+  const seen=new Set();
   const linear=value=>value<=.04045?value/12.92:((value+.055)/1.055)**2.4;
   assert.equal(TASK_COLOR_HUES.length,32);assert.equal(new Set(TASK_PALETTE).size,32);
   for(const hue of TASK_COLOR_HUES){
     const color=classicTaskColors(hue),[r,g,b]=color.background.slice(1).match(/../g).map(value=>parseInt(value,16));
-    assert.ok(redGreen.has(r)&&redGreen.has(g)&&blue.has(b));assert.equal(seen.has(color.background),false);seen.add(color.background);
+    assert.equal(seen.has(color.background),false);seen.add(color.background);
     const luminance=.2126*linear(r/255)+.7152*linear(g/255)+.0722*linear(b/255);
-    assert.ok(luminance>=.16,'Exclude the previous dark shades');
-    assert.ok(1.05/(luminance+.05)>=1.4,'Keep brighter task bands visible on white');
+    assert.ok(luminance>=.3,'Match the brighter prototype range');
     const inkContrast=color.ink==='#000'?(luminance+.05)/.05:1.05/(luminance+.05);
     assert.ok(inkContrast>=4.5,'Regenerate symbol contrasts with its color button');
     assert.equal(color.completed,`hsl(from ${color.background} h s calc(l + (100 - l) * .7))`);
+  }
+});
+test('prototype brightness preserves original reference colors and brightens saved colors without drifting on reload',()=>{
+  for(const color of ['#ff6666','#ffcc00','#ffff00','#66ff66','#00ffff','#99ccff','#cc99ff','#ff99ff'])assert.equal(prototypeBrightnessColor(color),color);
+  const red=prototypeBrightnessColor('#920000'),blue=prototypeBrightnessColor('#0000ff');
+  assert.match(red,/^#ff([a-f0-9]{2})\1$/);assert.match(blue,/^#([a-f0-9]{2})\1ff$/);
+  for(const color of [...TASK_PALETTE,'#920000','#0000ff','#b600aa']){
+    const bright=prototypeBrightnessColor(color);assert.equal(prototypeBrightnessColor(bright),bright,'Repeated loads do not lighten colors repeatedly');
   }
 });
 test('legacy colors are restored and frozen independently of the new palette',()=>{

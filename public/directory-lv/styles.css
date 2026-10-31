@@ -18,7 +18,7 @@ html[data-study="directory-compact"]{height:100%;overflow:hidden}
 [data-study="directory-compact"] .column-tasks{min-height:0;overflow:auto;scrollbar-width:none}
 [data-study="directory-compact"] .day-layout{max-width:none;width:100%}
 [data-study="directory-compact"] .sidebar::-webkit-scrollbar,[data-study="directory-compact"] #planner-content::-webkit-scrollbar,[data-study="directory-compact"] .column-tasks::-webkit-scrollbar{display:none}
-[data-study="directory-compact"] dialog .task-options{display:grid;grid-template-columns:minmax(0,1.35fr) repeat(2,minmax(0,1fr));gap:12px}
+[data-study="directory-compact"] dialog .task-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 [data-study="directory-compact"] #task-description{min-height:110px}
 [data-study="directory-compact"] .dialog-tools{display:flex;align-items:center;gap:6px;flex-shrink:0}
 [data-study="directory-compact"] .task-color-button{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;padding:0;border:1px solid var(--line);background:var(--classic-color);color:var(--classic-ink,#000);font:17px/1 "Times New Roman",Times,serif}

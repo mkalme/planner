@@ -76,8 +76,9 @@ try{
   await page.locator('.task-color-button').click();assert.notEqual(await page.locator('.task-color-button').evaluate(n=>getComputedStyle(n).backgroundColor),originalColor);
   const chosenHue=await page.locator('.task-color-button').evaluate(n=>Number(n.style.getPropertyValue('--task-hue')));
   const chosenColor=await page.locator('.task-color-button').evaluate(n=>n.style.getPropertyValue('--classic-color'));
-  await page.locator('#task-priority').selectOption('high');await page.locator('#task-form button[type=submit]').click();
-  await page.locator('#app[data-readonly]').waitFor();await ready();assert.equal(doc.tasks.length,1);assert.match(doc.tasks[0].comments[0].comment,/Prioritāte/);
+  assert.equal(await page.locator('#task-priority').count(),0);
+  await page.locator('#task-status').selectOption('progress');await page.locator('#task-form button[type=submit]').click();
+  await page.locator('#app[data-readonly]').waitFor();await ready();assert.equal(doc.tasks.length,1);assert.match(doc.tasks[0].comments[0].comment,/Statuss/);
   assert.equal(doc.tasks[0].hue,chosenHue,'The generated color saves with the task');
   assert.equal(doc.tasks[0].color,chosenColor,'Persist the actual color rather than relying on palette position');
   const id=doc.tasks[0].id,selector=`[data-task-id="${id}"]`;

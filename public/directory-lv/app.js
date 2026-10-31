@@ -2,7 +2,7 @@ import {startCloudPlanner} from '../cloud-ui.js';
 import {installTaskDrag} from '../drag-preview.js';
 import {classicTaskColors,generateDayTaskHue,getTaskColor,withStableTaskColors} from '../retro/1990s-colors.js';
 import {latvianDayInfo} from '../latvian-holidays.js';
-import {STORAGE_KEY,STATUSES,PRIORITIES,dateKey,fromKey,addDays,weekStart,monthDays,shiftPeriod,createTask,addTaskComment,isMissed,sortTasks,loadTasks,moveTask,updateTask,activityText} from './planner.js';
+import {STORAGE_KEY,STATUSES,dateKey,fromKey,addDays,weekStart,monthDays,shiftPeriod,createTask,addTaskComment,isMissed,sortTasks,loadTasks,moveTask,updateTask,activityText} from './planner.js';
 
 const root=document.querySelector('#app');
 const headerObserver=new ResizeObserver(positionSidebarEdge);
@@ -74,7 +74,7 @@ function taskCard(task,compact=false) {
   const status=STATUSES[task.status];
   return `<article class="task-card ${compact?'compact':''} ${muted?'is-muted':''} ${past?'is-missed':''} ${task.status==='complete'?'is-complete':''} ${task.status==='canceled'?'is-canceled':''}" style="${taskColorStyle(task.hue,getTaskColor(task))}" draggable="true" data-task-id="${esc(task.id)}" data-task-date="${task.date}" aria-label="${esc(task.title)}, ${status}${past?', nepaveikts':''}">
     <div class="task-leading"><button class="task-state state-${task.status}" data-action="status" data-id="${esc(task.id)}" aria-haspopup="menu" aria-expanded="false" aria-label="Mainīt statusu: ${esc(task.title)}" title="${status} — mainīt statusu">${task.status==='complete'?icon('check'):task.status==='canceled'?icon('close'):task.status==='progress'?'<span></span>':''}</button></div>
-    <button class="task-content" data-action="edit" data-id="${esc(task.id)}"><span class="task-title">${esc(task.title)}</span>${!compact?`<span class="task-description">${esc(task.description)}</span>`:''}<span class="task-meta">${task.priority==='high'?'<span class="priority-high">Augsta</span>':task.priority==='low'?'<span class="priority-low">Zema</span>':'<span>Parasta</span>'}<span class="task-status">${past?'Nepaveikts':status}</span>${task.comments.length?`<span class="comment-count">Ieraksti: ${task.comments.length}</span>`:''}</span></button>
+    <button class="task-content" data-action="edit" data-id="${esc(task.id)}"><span class="task-title">${esc(task.title)}</span>${!compact?`<span class="task-description">${esc(task.description)}</span>`:''}<span class="task-meta"><span class="task-status">${past?'Nepaveikts':status}</span>${task.comments.length?`<span class="comment-count">Ieraksti: ${task.comments.length}</span>`:''}</span></button>
     <div class="task-order">${button('order-up','Pārvietot augstāk','up',`data-id="${esc(task.id)}"`)}${button('order-down','Pārvietot zemāk','down',`data-id="${esc(task.id)}"`)}<span class="drag-handle" title="Vilkt, lai pārvietotu">${icon('grip')}</span></div>
   </article>`;
 }
@@ -136,7 +136,7 @@ function openEditor(id=null,key=selected) {
     <header class="dialog-header"><h2 id="dialog-heading">${task?'Rediģēt uzdevumu':'Jauns uzdevums'}</h2><div class="dialog-tools"><button class="task-color-button" data-action="color" type="button" style="${taskColorStyle(draftHue,draftColor)}" title="Ģenerēt citu uzdevuma krāsu" aria-label="Ģenerēt citu uzdevuma krāsu"><span aria-hidden="true">↻</span></button>${button('close-dialog','Aizvērt uzdevumu','close')}</div></header>
     <div class="field"><label for="task-title">Nosaukums</label><input id="task-title" name="title" placeholder="Uzdevuma nosaukums" value="${esc(task?.title||'')}" maxlength="120" required autocomplete="off"></div>
     <div class="field"><label for="task-description">Apraksts <span>nav obligāti</span></label><textarea id="task-description" name="description" placeholder="Papildu informācija" rows="5" maxlength="3000">${esc(task?.description||'')}</textarea></div>
-    <div class="task-options"><div class="field"><label for="task-date">Datums</label><input id="task-date" name="date" type="date" lang="lv" value="${task?.date||key}" min="1900-01-01" max="9999-12-31" required></div><div class="field"><label for="task-status">Statuss</label><select id="task-status" name="status">${Object.entries(STATUSES).map(([value,label])=>`<option value="${value}" ${(task?.status||'new')===value?'selected':''}>${label}</option>`).join('')}</select></div><div class="field"><label for="task-priority">Prioritāte</label><select id="task-priority" name="priority">${Object.entries(PRIORITIES).map(([value,label])=>`<option value="${value}" ${(task?.priority||'normal')===value?'selected':''}>${label}</option>`).join('')}</select></div></div>
+    <div class="task-options"><div class="field"><label for="task-date">Datums</label><input id="task-date" name="date" type="date" lang="lv" value="${task?.date||key}" min="1900-01-01" max="9999-12-31" required></div><div class="field"><label for="task-status">Statuss</label><select id="task-status" name="status">${Object.entries(STATUSES).map(([value,label])=>`<option value="${value}" ${(task?.status||'new')===value?'selected':''}>${label}</option>`).join('')}</select></div></div>
     <section class="task-history"><h3>Vēsture un komentāri <span id="activity-count">${task?.comments.length||0}</span></h3><div id="activity-list" role="log" aria-label="Uzdevuma vēsture un komentāri">${activityList(task)}</div><div class="comment-compose"><textarea id="task-comment" name="comment" rows="1" placeholder="Pievienot komentāru (nav obligāti)" aria-label="Komentārs (nav obligāti)" maxlength="2000"></textarea>${task?'<button type="button" class="secondary-btn" data-action="post-comment">Pievienot</button>':''}</div></section>
     <p id="form-error" role="alert"></p>
     <footer class="dialog-footer">${task?'<button type="button" class="delete-btn" data-action="delete">Dzēst</button>':'<span></span>'}<div><button type="button" class="secondary-btn" data-action="close-dialog">Atcelt</button><button class="primary-btn" type="submit">${task?'Saglabāt':'Pievienot uzdevumu'}</button></div></footer>
@@ -232,7 +232,7 @@ root.addEventListener('change',event=>{
 });
 root.addEventListener('submit',event=>{
   if(event.target.id!=='task-form')return;event.preventDefault();
-  const data=new FormData(event.target),fields={title:data.get('title').trim(),description:data.get('description').trim(),date:data.get('date'),priority:data.get('priority'),status:data.get('status'),hue:draftHue,color:draftColor};
+  const data=new FormData(event.target),fields={title:data.get('title').trim(),description:data.get('description').trim(),date:data.get('date'),status:data.get('status'),hue:draftHue,color:draftColor};
   try{
     if(editing)updateTask(tasks,editing,fields,data.get('comment'));
     else createTask(tasks,fields,data.get('comment'));
