@@ -55,7 +55,7 @@ try{
     assert.equal(metrics.side.top,0);assert.equal(metrics.side.left,8);assert.equal(metrics.side.bottom,metrics.h-8);
     assert.ok(Math.abs(metrics.line-metrics.header.bottom)<1,`Calendar and header dividers align: ${metrics.line}, ${metrics.header.bottom}, width ${metrics.w}`);
     assert.ok(Math.abs(metrics.calendar.left-metrics.privacy.left)<1,'Privacy and calendar share a left edge');
-    assert.ok(Math.abs(metrics.calendar.left-metrics.side.left-(metrics.side.right-metrics.calendar.right-1))<1,'Calendar is evenly inset in gray sidebar');
+    assert.ok(Math.abs(metrics.calendar.left-metrics.side.left)<1,'Calendar follows the plain directory sidebar left edge');
     assert.equal(metrics.login.height,metrics.create.height,'Account and create controls have equal heights');
     assert.ok(metrics.create.right<=metrics.w&&metrics.login.left>=metrics.header.left);
   }
