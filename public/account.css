@@ -1,1 +1,14 @@
-#account{max-width:1440px;margin:0 auto 10px;padding:5px 0;border-bottom:1px solid #aaa;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font:12px "Times New Roman",serif;position:relative;z-index:1}#account button{border:1px solid #aaa;background:#eee;padding:3px 6px;font:inherit}#account [role=status]{flex:1;min-width:150px}#account .account-error{color:#900}#app[data-readonly] [data-action=new],#app[data-readonly] [data-action=status],#app[data-readonly] [data-action=order-up],#app[data-readonly] [data-action=order-down]{opacity:.45}#account input[type=file]{display:none}#account .account-email{overflow-wrap:anywhere}#account a{color:#00e}#app[data-readonly] .task-card{cursor:default}
+#account{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;min-width:0;max-width:360px;font:11px "Times New Roman",serif;position:relative;z-index:10}
+#account button{border:1px solid #aaa;background:#eee;padding:3px 6px;font:inherit}
+#account [role=status]{color:#555;font-size:10px;max-width:240px;overflow-wrap:anywhere}
+#account .account-error{color:#900}
+#account[data-state=disconnected] [role=status]{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+#account .account-menu{position:relative;min-width:0}
+#account summary{cursor:pointer;color:#00e;text-decoration:underline;max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:3px 0}
+#account .account-actions{position:absolute;right:0;top:100%;min-width:170px;max-width:min(240px,calc(100vw - 24px));padding:4px;border:1px solid #888;background:#fff;display:grid;gap:3px;z-index:50}
+#account .account-actions button{text-align:left;white-space:normal}
+#account a{color:#00e}
+#app[data-readonly] [data-action=new],#app[data-readonly] [data-action=status],#app[data-readonly] [data-action=order-up],#app[data-readonly] [data-action=order-down]{opacity:.45}
+#app[data-readonly] .task-card{cursor:default}
+[data-study="directory-compact"] .header-actions{display:flex;align-items:center;gap:12px;min-width:0}
+@media(max-width:760px){[data-study="directory-compact"] .planner-header{flex-wrap:wrap}[data-study="directory-compact"] .header-actions{width:100%;justify-content:space-between;flex-wrap:nowrap;gap:7px}#account{flex:1;max-width:none}#account summary{max-width:135px}#account [role=status]{max-width:150px}}

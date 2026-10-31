@@ -33,8 +33,13 @@ try{
     if(url.searchParams.get('alt')==='media')return reply(doc);
     return reply({id:`file-${account}`,version:String(version)});
   });
-  const connect=async()=>{await page.getByRole('button',{name:'Pieslēgt Google kontu',exact:true}).click();await page.locator('#app:not([data-readonly])').waitFor();};
-  const ready=()=>page.locator('#account [role=status]').filter({hasText:'Saglabāts Google diskā.'}).waitFor();
+  async function accountAction(name){
+    const b=page.getByRole('button',{name,exact:true});
+    if(!await b.isVisible()){const summary=page.locator('#account summary');if(await summary.count())await summary.click();}
+    await b.click();
+  }
+  const connect=async()=>{await accountAction('Pieslēgt Google kontu');await page.locator('#app:not([data-readonly])').waitFor();};
+  const ready=()=>page.locator('#account [role=status]').filter({hasText:'Saglabāts'}).waitFor();
   await page.goto('http://127.0.0.1:4173/planner/');await page.locator('#app[data-readonly]').waitFor();
   assert.equal(await page.locator('[data-task-id]').count(),0);
   await page.evaluate(()=>window.mockDeny=true);await page.getByRole('button',{name:'Pieslēgt Google kontu'}).click();
@@ -56,21 +61,35 @@ try{
   failSave=true;await page.locator(`${selector} [data-action=status]`).click();await page.locator('#quick-status [data-status=new]').click();
   await page.locator('#account .account-error').waitFor();
   assert.ok(await page.evaluate(()=>localStorage.getItem('mkalme-planner:pending:account-1')));
-  await page.reload();await page.getByRole('button',{name:'Pieslēgt Google kontu',exact:true}).click();await page.getByText('Atrastas nesaglabātas izmaiņas.',{exact:false}).waitFor();
-  failSave=false;await page.getByRole('button',{name:'Mēģināt saglabāt vēlreiz'}).click();await ready();assert.equal(doc.tasks[0].status,'new');
+  await page.reload();await accountAction('Pieslēgt Google kontu');await page.getByText('Atrastas nesaglabātas izmaiņas.',{exact:false}).waitFor();
+  failSave=false;await accountAction('Mēģināt saglabāt vēlreiz');await ready();assert.equal(doc.tasks[0].status,'new');
   // Stale data must not overwrite a newer remote version.
   version++;doc={...doc,writeId:'another-device'};
   await page.locator(`${selector} [data-action=status]`).click();await page.locator('#quick-status [data-status=progress]').click();
   await page.getByText('Google diskā ir jaunāki dati.',{exact:false}).waitFor();assert.equal(doc.tasks[0].status,'new');
-  page.once('dialog',d=>d.accept());const download=page.waitForEvent('download');await page.getByRole('button',{name:'Atjaunot',exact:true}).click();await download;await ready();
+  page.once('dialog',d=>d.accept());const download=page.waitForEvent('download');await accountAction('Atjaunot');await download;await ready();
   // Invalid import leaves cloud data untouched.
   const previous=JSON.stringify(doc);await page.locator('input[type=file]').setInputFiles({name:'bad.json',mimeType:'application/json',buffer:Buffer.from('{bad')});
   await page.getByText('Fails nav derīgs JSON dokuments.',{exact:true}).waitFor();assert.equal(JSON.stringify(doc),previous);
   page.once('dialog',d=>d.accept());await page.locator('input[type=file]').setInputFiles({name:'empty.json',mimeType:'application/json',buffer:Buffer.from('[]')});await ready();assert.deepEqual(doc.tasks,[]);
   await context.setOffline(true);await page.locator('#app[data-readonly]').waitFor();await context.setOffline(false);await ready();
-  unauthorized=true;await page.getByRole('button',{name:'Atjaunot',exact:true}).click();await page.getByRole('button',{name:'Pieslēgt Google kontu',exact:true}).waitFor();assert.equal(await page.locator('[data-action=new]').first().isDisabled(),true);
-  await page.getByRole('button',{name:'Iziet',exact:true}).click();assert.equal(await page.locator('[data-task-id]').count(),0);assert.doesNotMatch(await page.locator('#account').innerText(),/account-1@/);
+  unauthorized=true;await accountAction('Atjaunot');await page.locator('#account[data-state=error],#account[data-state=expired]').waitFor();assert.equal(await page.locator('[data-action=new]').first().isDisabled(),true);
+  await accountAction('Iziet');assert.equal(await page.locator('[data-task-id]').count(),0);assert.doesNotMatch(await page.locator('#account').innerText(),/account-1@/);
   accounts.set(1,{doc,version});account=2;doc=null;version=0;await connect();assert.deepEqual(doc.tasks,[]);
+  for(const viewport of [{width:1440,height:900},{width:1024,height:768},{width:390,height:844}]){
+    await page.setViewportSize(viewport);await page.locator('[data-view=week]').click();
+    await page.waitForTimeout(50);
+    assert.equal(await page.locator('.planner-header #account').count(),1,'Account controls stay inside the header after rerender');
+    assert.equal(await page.locator('.planner-footer').count(),0);
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight&&document.documentElement.scrollWidth<=innerWidth),true,'Empty week has no unnecessary page scrollbar');
+    const edge=await page.locator('.sidebar').evaluate(n=>{const r=n.getBoundingClientRect(),s=getComputedStyle(n,'::after');return {expected:r.right-1,left:parseFloat(s.left),top:s.top,bottom:s.bottom,position:s.position};});
+    assert.equal(edge.position,'fixed');assert.equal(edge.top,'0px');assert.equal(edge.bottom,'0px');assert.ok(Math.abs(edge.left-edge.expected)<1);
+    const actions=await page.locator('.header-actions').evaluate(n=>[...n.children].map(c=>{const r=c.getBoundingClientRect();return {y:r.y,h:r.height};}));
+    assert.ok(Math.abs(actions[0].y+actions[0].h/2-actions[1].y-actions[1].h/2)<2,'Account controls align with create task button');
+    await page.locator('#account summary').click();assert.equal(await page.getByRole('button',{name:'Lejupielādēt',exact:true}).isVisible(),true);
+    await page.locator('#account summary').press('Escape');assert.equal(await page.locator('#account details').getAttribute('open'),null);
+    if(viewport.width===1440)await page.screenshot({path:'artifacts/compact-header-desktop.png',fullPage:true});
+  }
   await page.setViewportSize({width:390,height:844});
   for(const view of ['day','week','month','year']){await page.locator(`[data-view="${view}"]`).click();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);}
   await page.screenshot({path:'artifacts/mobile.png',fullPage:true});assert.deepEqual(errors,[]);

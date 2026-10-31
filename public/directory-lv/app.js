@@ -45,8 +45,16 @@ function sidebar() {
   return `<aside class="sidebar"><a href="./" class="wordmark" aria-label="Uzdevumu plānotājs"><span class="brand-mark">st.</span> still</a>${miniCalendar(selected)}<div class="sidebar-bottom"><div class="progress-label"><span>Šodien pabeigti</span><b>${done}<span> / ${daily.length}</span></b></div><div class="progress-line"><i style="width:${daily.length?done/daily.length*100:0}%"></i></div></div></aside>`;
 }
 function render() {
-  root.innerHTML=`<div class="app-shell">${sidebar()}<main class="planner-main"><header class="planner-header"><h1>${studyTitle}</h1><div class="header-actions"><button class="primary-btn" data-action="new">${icon('plus')} Jauns uzdevums</button></div></header><div class="planner-toolbar"><div class="date-controls"><h2>${dateTitle()}</h2><div class="date-arrows">${button('prev','Iepriekšējais periods','left')}${button('next','Nākamais periods','right')}</div><button class="today-btn" data-action="today">Šodien</button></div><nav class="view-switch" aria-label="Kalendāra skats">${['day','week','month','year'].map(v=>`<button data-action="view" data-view="${v}" ${view===v?'aria-current="true"':''}>${({day:'Diena',week:'Nedēļa',month:'Mēnesis',year:'Gads'})[v]}</button>`).join('')}</nav></div><div id="planner-content" class="view-${view}">${renderView()}</div><footer class="planner-footer"><span>Velciet uzdevumus, lai mainītu secību vai dienu</span><span>Dati jūsu Google diskā</span></footer></main></div><dialog id="task-dialog" aria-labelledby="dialog-heading"></dialog><div id="quick-status" class="quick-status" popover="auto" role="menu" aria-label="Uzdevuma statuss"></div><div id="toast" role="status" aria-live="polite"></div>`;
+  const accountBar=document.querySelector('#account');
+  root.innerHTML=`<div class="app-shell">${sidebar()}<main class="planner-main"><header class="planner-header"><h1>${studyTitle}</h1><div class="header-actions"><button class="primary-btn" data-action="new">${icon('plus')} Jauns uzdevums</button></div></header><div class="planner-toolbar"><div class="date-controls"><h2>${dateTitle()}</h2><div class="date-arrows">${button('prev','Iepriekšējais periods','left')}${button('next','Nākamais periods','right')}</div><button class="today-btn" data-action="today">Šodien</button></div><nav class="view-switch" aria-label="Kalendāra skats">${['day','week','month','year'].map(v=>`<button data-action="view" data-view="${v}" ${view===v?'aria-current="true"':''}>${({day:'Diena',week:'Nedēļa',month:'Mēnesis',year:'Gads'})[v]}</button>`).join('')}</nav></div><div id="planner-content" class="view-${view}">${renderView()}</div></main></div><dialog id="task-dialog" aria-labelledby="dialog-heading"></dialog><div id="quick-status" class="quick-status" popover="auto" role="menu" aria-label="Uzdevuma statuss"></div><div id="toast" role="status" aria-live="polite"></div>`;
+  if(accountBar)root.querySelector('.header-actions').prepend(accountBar);
+  requestAnimationFrame(positionSidebarEdge);
 }
+function positionSidebarEdge(){
+  const sidebar=root.querySelector('.sidebar');
+  if(sidebar)sidebar.style.setProperty('--sidebar-edge',`${sidebar.getBoundingClientRect().right-1}px`);
+}
+window.addEventListener('resize',positionSidebarEdge);
 function taskColorStyle(hue){
   const base=`--task-hue:${hue}`;
   if(document.documentElement.dataset.era!=='1990s')return base;

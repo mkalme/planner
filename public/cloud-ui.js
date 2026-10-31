@@ -13,9 +13,16 @@ export function startCloudPlanner({root,getTasks,setTasks,isBusy,notify}){
   }
   function render(){
     bar.replaceChildren();
-    const status=document.createElement('span');status.setAttribute('role','status');status.textContent=message;if(['error','conflict','expired'].includes(state))status.className='account-error';bar.append(status);
-    if(user){const email=document.createElement('span');email.className='account-email';email.textContent=user.email;bar.append(email);}
-    const button=(text,action,disabled=false)=>{const b=document.createElement('button');b.type='button';b.textContent=text;b.disabled=disabled;b.onclick=action;bar.append(b);};
+    bar.dataset.state=state;
+    const status=document.createElement('span');status.setAttribute('role','status');status.setAttribute('aria-label',message);status.title=message;status.textContent=state==='ready'?'Saglabāts':message;if(['error','conflict','expired'].includes(state))status.className='account-error';bar.append(status);
+    let actions=bar;
+    if(user){
+      const menu=document.createElement('details');menu.className='account-menu';
+      const summary=document.createElement('summary');summary.className='account-email';summary.textContent=user.email;summary.title=user.email;
+      const panel=document.createElement('div');panel.className='account-actions';menu.append(summary,panel);bar.append(menu);actions=panel;
+      menu.onkeydown=event=>{if(event.key==='Escape'){menu.open=false;summary.focus();}};
+    }
+    const button=(text,action,disabled=false)=>{const b=document.createElement('button');b.type='button';b.textContent=text;b.disabled=disabled;b.onclick=()=>{const menu=bar.querySelector('details');if(menu)menu.open=false;action();};actions.append(b);};
     const busy=inFlight||state==='saving'||state==='loading';
     button(account.token?'Mainīt kontu':'Pieslēgt Google kontu',connect,busy);
     if(user){
@@ -104,6 +111,7 @@ export function startCloudPlanner({root,getTasks,setTasks,isBusy,notify}){
   root.addEventListener('click',event=>{if(!editable()&&mutations.has(event.target.closest('[data-action]')?.dataset.action)){event.preventDefault();event.stopImmediatePropagation();notify('Lai mainītu uzdevumus, pieslēdzieties un sagaidiet saglabāšanu.');}},true);
   for(const type of ['submit','dragstart','drop'])root.addEventListener(type,event=>{if(!editable()){event.preventDefault();event.stopImmediatePropagation();}},true);
   new MutationObserver(protect).observe(root,{childList:true,subtree:true});
+  document.addEventListener('click',event=>{if(!bar.contains(event.target)){const menu=bar.querySelector('details');if(menu)menu.open=false;}});
   window.addEventListener('offline',()=>setState('offline','Nav savienojuma. Uzdevumi ir tikai lasāmi.'));
   window.addEventListener('online',()=>{if(pending)setState('error','Savienojums atjaunots. Mēģiniet saglabāt izmaiņas vēlreiz.');else void refresh();});
   window.addEventListener('focus',()=>void refresh());

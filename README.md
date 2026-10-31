@@ -45,6 +45,7 @@ If it already exists, inspect its contents before connecting this checkout; do n
 
 ## Saving and recovery
 
+- Account actions (refresh, export, import, account switching and sign-out) are in the compact email-address menu beside **Jauns uzdevums**. Save status stays visible in the header. Click outside the menu or press Escape to close it.
 - New accounts start with an empty planner. After connecting Google, editing is enabled only after Drive loads successfully.
 - Only **one device should edit at a time**. Wait for **Saglabāts Google diskā.** before switching devices. Saves are serialized, and Web Locks serialize uploads across tabs in the same browser. A newer remote file version blocks a stale save. The version check is not an atomic cross-device lock; concurrent editing/merging is outside this version.
 - While saving, offline, or after token expiration, new edits are disabled. Existing in-memory tasks remain available for reading and export. Modern browsers with Web Locks are required for saving.

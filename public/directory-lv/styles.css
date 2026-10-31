@@ -1,3 +1,5 @@
 /* Iepriekšējais izskats; vienīgā stila izmaiņa ir pelēka sānjosla. */
 [data-study="directory-compact"] .sidebar{background:#eee;box-shadow:-100vmax 0 0 100vmax #eee}
 [data-study="directory-compact"] .sidebar::before{content:'Kalendārs'}
+[data-study="directory-compact"] .sidebar{border-right:0}
+[data-study="directory-compact"] .sidebar::after{content:'';position:fixed;top:0;bottom:0;left:var(--sidebar-edge);width:1px;background:var(--line);pointer-events:none}
