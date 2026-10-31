@@ -66,12 +66,6 @@ function taskColorStyle(hue){
   const colors=classicTaskColors(hue,document.documentElement.dataset.study.startsWith('classic-'));
   return `${base};--classic-color:${colors.background};--classic-complete:${colors.completed}`;
 }
-function nextTaskHue(previous){
-  if(document.documentElement.dataset.era!=='1990s')return randomHue(previous);
-  const current=classicTaskColors(previous).background;
-  const choices=Array.from({length:360},(_,hue)=>hue).filter(hue=>classicTaskColors(hue).background!==current);
-  return choices[Math.floor(Math.random()*choices.length)];
-}
 function taskCard(task,compact=false) {
   const past=isMissed(task,today),muted=task.status==='complete'||task.status==='canceled'||past;
   const status=STATUSES[task.status];
@@ -137,9 +131,8 @@ function openEditor(id=null,key=selected) {
   dialog.innerHTML=`<form id="task-form">
     <header class="dialog-header"><h2 id="dialog-heading">${task?'Rediģēt uzdevumu':'Jauns uzdevums'}</h2>${button('close-dialog','Aizvērt uzdevumu','close')}</header>
     <div class="field"><label for="task-title">Nosaukums</label><input id="task-title" name="title" placeholder="Uzdevuma nosaukums" value="${esc(task?.title||'')}" maxlength="120" required autocomplete="off"></div>
-    <div class="field"><label for="task-description">Apraksts <span>nav obligāti</span></label><textarea id="task-description" name="description" placeholder="Papildu informācija" rows="2" maxlength="3000">${esc(task?.description||'')}</textarea></div>
-    <div class="form-pair"><div class="field"><label for="task-status">Statuss</label><select id="task-status" name="status">${Object.entries(STATUSES).map(([value,label])=>`<option value="${value}" ${(task?.status||'new')===value?'selected':''}>${label}</option>`).join('')}</select></div><div class="field"><label for="task-priority">Prioritāte</label><select id="task-priority" name="priority">${Object.entries(PRIORITIES).map(([value,label])=>`<option value="${value}" ${(task?.priority||'normal')===value?'selected':''}>${label}</option>`).join('')}</select></div></div>
-    <div class="form-pair"><div class="field"><label for="task-date">Datums</label><input id="task-date" name="date" type="date" lang="lv" value="${task?.date||key}" min="1900-01-01" max="9999-12-31" required></div><div class="field"><label>Krāsa</label><button class="color-button" data-action="color" type="button"><i id="color-preview" style="${taskColorStyle(draftHue)}"></i><span>Cita krāsa</span>${icon('shuffle')}</button></div></div>
+    <div class="field"><label for="task-description">Apraksts <span>nav obligāti</span></label><textarea id="task-description" name="description" placeholder="Papildu informācija" rows="5" maxlength="3000">${esc(task?.description||'')}</textarea></div>
+    <div class="task-options"><div class="field"><label for="task-date">Datums</label><input id="task-date" name="date" type="date" lang="lv" value="${task?.date||key}" min="1900-01-01" max="9999-12-31" required></div><div class="field"><label for="task-status">Statuss</label><select id="task-status" name="status">${Object.entries(STATUSES).map(([value,label])=>`<option value="${value}" ${(task?.status||'new')===value?'selected':''}>${label}</option>`).join('')}</select></div><div class="field"><label for="task-priority">Prioritāte</label><select id="task-priority" name="priority">${Object.entries(PRIORITIES).map(([value,label])=>`<option value="${value}" ${(task?.priority||'normal')===value?'selected':''}>${label}</option>`).join('')}</select></div></div>
     <section class="task-history"><h3>Vēsture un komentāri <span id="activity-count">${task?.comments.length||0}</span></h3><div id="activity-list" role="log" aria-label="Uzdevuma vēsture un komentāri">${activityList(task)}</div><div class="comment-compose"><textarea id="task-comment" name="comment" rows="1" placeholder="Pievienot komentāru (nav obligāti)" aria-label="Komentārs (nav obligāti)" maxlength="2000"></textarea>${task?'<button type="button" class="secondary-btn" data-action="post-comment">Pievienot</button>':''}</div></section>
     <p id="form-error" role="alert"></p>
     <footer class="dialog-footer">${task?'<button type="button" class="delete-btn" data-action="delete">Dzēst</button>':'<span></span>'}<div><button type="button" class="secondary-btn" data-action="close-dialog">Atcelt</button><button class="primary-btn" type="submit">${task?'Saglabāt':'Pievienot uzdevumu'}</button></div></footer>
@@ -184,7 +177,6 @@ root.addEventListener('click',event=>{
     root.querySelector(`[data-task-id="${CSS.escape(id)}"] [data-action="status"]`)?.focus();return;
   }
   if(action==='close-dialog')return closeEditor();
-  if(action==='color'){draftHue=nextTaskHue(draftHue);document.querySelector('#color-preview').style.cssText=taskColorStyle(draftHue);return;}
   if(action==='post-comment'){
     const input=document.querySelector('#task-comment');if(!input.value.trim())return input.focus();
     const task=addTaskComment(tasks,editing,input.value);input.value='';editorCommentsChanged=true;
