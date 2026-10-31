@@ -10,6 +10,11 @@ export function validateDocument(value){
   return structuredClone(value);
 }
 export function documentFor(tasks){return validateDocument({schemaVersion:VERSION,updatedAt:new Date().toISOString(),writeId:crypto.randomUUID(),tasks});}
+export async function documentFingerprint(doc){
+  const canonical=JSON.stringify(validateDocument(doc),(_key,value)=>value&&typeof value==='object'&&!Array.isArray(value)?Object.fromEntries(Object.keys(value).sort().map(key=>[key,value[key]])):value);
+  const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(canonical));
+  return Array.from(new Uint8Array(digest),byte=>byte.toString(16).padStart(2,'0')).join('');
+}
 export function importDocument(text){
   if(text.length>10*1024*1024)throw new Error('Fails ir pārāk liels (maksimums 10 MB).');
   let value;try{value=JSON.parse(text);}catch{throw new Error('Fails nav derīgs JSON dokuments.');}

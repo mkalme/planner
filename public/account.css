@@ -5,8 +5,9 @@
 #account[data-state=disconnected] [role=status]{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 #account .account-menu{position:relative;min-width:0}
 #account summary{cursor:pointer;color:#00e;text-decoration:underline;max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:3px 0}
-#account .account-actions{position:absolute;right:0;top:100%;min-width:170px;max-width:min(240px,calc(100vw - 24px));padding:4px;border:1px solid #888;background:#fff;display:grid;gap:3px;z-index:50}
-#account .account-actions button{text-align:left;white-space:normal}
+#account .account-actions{position:absolute;right:0;top:calc(100% + 7px);width:200px;max-width:calc(100vw - 16px);padding:5px;border:1px solid var(--strong-line);background:var(--surface);color:var(--ink);display:grid;gap:0;box-shadow:none;z-index:50}
+#account .account-actions button{display:flex;align-items:center;gap:9px;width:100%;padding:8px;border:0;background:none;font:13px "Times New Roman",Times,serif;text-align:left;white-space:normal;color:var(--ink)}
+#account .account-actions button:hover,#account .account-actions button:focus-visible{background:var(--accent-bg);outline-offset:-2px}
 #account>button,#account summary,[data-study="directory-compact"] .header-actions>.primary-btn{box-sizing:border-box;height:28px;min-height:28px;margin:0;padding:4px 8px;border:1px solid #aaa;background:#eee;font:12px/18px "Times New Roman",serif}
 #account summary{display:block;line-height:18px}
 #account summary::after{content:' ▾'}
@@ -15,3 +16,4 @@
 #app[data-readonly] .task-card{cursor:default}
 [data-study="directory-compact"] .header-actions{display:flex;align-items:center;gap:12px;min-width:0}
 @media(max-width:760px){[data-study="directory-compact"] .planner-header{flex-wrap:wrap}[data-study="directory-compact"] .header-actions{width:100%;justify-content:space-between;flex-wrap:nowrap;gap:7px}#account{flex:1;max-width:none}#account summary{max-width:135px}#account [role=status]{max-width:150px}}
+@media(max-width:450px){#account .account-actions button{min-height:36px}}

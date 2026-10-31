@@ -1,6 +1,6 @@
 import {GoogleAccount} from './google.js';
 import {DriveStore} from './drive.js';
-import {documentFor,importDocument} from './document.js';
+import {documentFor,importDocument,documentFingerprint} from './document.js';
 export function startCloudPlanner({root,getTasks,setTasks,isBusy,notify}){
   const bar=document.querySelector('#account');
   let state='disconnected',message='Pieslēdzieties Google kontam, lai atvērtu uzdevumus.',user=null,store=null,pending=null,inFlight=false;
@@ -43,6 +43,7 @@ export function startCloudPlanner({root,getTasks,setTasks,isBusy,notify}){
     if(inFlight)return;
     if(isBusy()){notify('Vispirms aizveriet uzdevuma logu.');return;}
     if(pending)download(pending.doc);
+    inFlight=true;
     setTasks([]);user=null;store=null;pending=null;if(!restore)account.disconnect();setState('loading',restore?'Atjauno Google savienojumu…':'Pieslēdzas Google kontam…');
     try{
       user=restore?await account.restore():await account.connect();
@@ -52,13 +53,14 @@ export function startCloudPlanner({root,getTasks,setTasks,isBusy,notify}){
       const raw=localStorage.getItem(key());
       if(raw){
         const saved=JSON.parse(raw);
-        pending={doc:importDocument(JSON.stringify(saved.doc)),version:saved.version,fileId:saved.fileId};
+        pending={doc:importDocument(JSON.stringify(saved.doc)),version:saved.version,fileId:saved.fileId,baseHash:saved.baseHash??null};
         if(pending.fileId!==store.fileId)throw new Error('Nesaglabātās izmaiņas pieder citam Drive failam. Lejupielādējiet tās pirms datu pārlādes.');
-        if(doc.writeId===pending.doc.writeId){localStorage.removeItem(key());pending=null;}
+        if(store.baseHash===await documentFingerprint(pending.doc)){localStorage.removeItem(key());pending=null;}
       }
       setTasks(pending?.doc.tasks||doc.tasks);
       setState(pending?'error':'ready',pending?'Atrastas nesaglabātas izmaiņas. Saglabājiet tās vēlreiz vai lejupielādējiet.':'Saglabāts Google diskā.');
     }catch(error){setState('error',error.message);}
+    finally{inFlight=false;render();}
   }
   function disconnect(){
     if(inFlight)return;
@@ -70,7 +72,7 @@ export function startCloudPlanner({root,getTasks,setTasks,isBusy,notify}){
     if(inFlight)return;inFlight=true;
     setState('saving','Saglabā Google diskā…');
     try{
-      const work=()=>store.save(pending.doc,pending.version);
+      const work=()=>store.save(pending.doc,pending.version,pending.baseHash);
       if(!navigator.locks)throw new Error('Šajā pārlūkā droša saglabāšana nav atbalstīta. Izmantojiet jaunāku pārlūku.');
       const doc=await navigator.locks.request(`mkalme-planner:${user.id}`,work);
       localStorage.removeItem(key());pending=null;setTasks(doc.tasks);setState('ready','Saglabāts Google diskā.');notify('Izmaiņas saglabātas Google diskā.');
@@ -79,7 +81,7 @@ export function startCloudPlanner({root,getTasks,setTasks,isBusy,notify}){
   }
   function save(tasks){
     if(!editable())return;
-    pending={doc:documentFor(tasks),version:store.version,fileId:store.fileId};
+    pending={doc:documentFor(tasks),version:store.version,fileId:store.fileId,baseHash:store.baseHash};
     try{localStorage.setItem(key(),JSON.stringify(pending));}catch{setState('error','Pārlūks nevar paturēt nesaglabātās izmaiņas. Lejupielādējiet tās.');return;}
     void commit();
   }
@@ -95,9 +97,10 @@ export function startCloudPlanner({root,getTasks,setTasks,isBusy,notify}){
       if(!confirm('Nesaglabātās izmaiņas tiks lejupielādētas pirms Google diska datu ielādes. Turpināt?'))return;
       download(pending.doc);
     }
-    setState('loading','Ielādē Google diska datus…');
+    inFlight=true;setState('loading','Ielādē Google diska datus…');
     try{const doc=await store.read();localStorage.removeItem(key());pending=null;setTasks(doc.tasks);setState('ready','Saglabāts Google diskā.');}
     catch(error){setState('error',error.message);}
+    finally{inFlight=false;render();}
   }
   const input=document.createElement('input');input.type='file';input.accept='.json,application/json';input.hidden=true;document.body.append(input);
   input.onchange=async()=>{

@@ -1,8 +1,8 @@
 html[data-study="directory-compact"]{height:100%;overflow:hidden}
-[data-study="directory-compact"] body{height:100dvh;padding:0 24px 8px;overflow:hidden;display:flex;flex-direction:column}
+[data-study="directory-compact"] body{--page-bottom-space:24px;height:100dvh;padding:0 24px var(--page-bottom-space);overflow:hidden;display:flex;flex-direction:column}
 [data-study="directory-compact"] #app{flex:1;min-height:0;width:100%}
 [data-study="directory-compact"] .app-shell{--sidebar-width:155px;--calendar-bottom-space:14px;position:relative;height:100%;min-height:0;max-width:1440px;margin:0 auto;grid-template-columns:var(--sidebar-width) minmax(0,1fr);gap:20px}
-[data-study="directory-compact"] .app-shell::after{content:'';position:absolute;left:calc(var(--sidebar-width) - 1px);top:calc(var(--calendar-bottom-space) + 8px);bottom:var(--calendar-bottom-space);border-right:1px solid var(--line);pointer-events:none}
+[data-study="directory-compact"] .app-shell::after{content:'';position:absolute;left:calc(var(--sidebar-width) - 1px);top:calc(var(--calendar-bottom-space) + var(--page-bottom-space));bottom:var(--calendar-bottom-space);border-right:1px solid var(--line);pointer-events:none}
 [data-study="directory-compact"] .sidebar{background:none;box-shadow:none;border-right:1px solid transparent;padding:18px 12px 14px 0;min-height:0;overflow:auto;scrollbar-width:none}
 [data-study="directory-compact"] .sidebar::before{content:'Kalendārs';box-sizing:border-box;height:var(--header-height);min-height:var(--header-height);padding:0;margin:0 0 14px;display:flex;align-items:center;border-bottom:1px solid var(--line);flex-shrink:0}
 [data-study="directory-compact"] .sidebar::after{display:none}
@@ -20,6 +20,12 @@ html[data-study="directory-compact"]{height:100%;overflow:hidden}
 [data-study="directory-compact"] .sidebar::-webkit-scrollbar,[data-study="directory-compact"] #planner-content::-webkit-scrollbar,[data-study="directory-compact"] .column-tasks::-webkit-scrollbar{display:none}
 [data-study="directory-compact"] dialog .task-options{display:grid;grid-template-columns:minmax(0,1.35fr) repeat(2,minmax(0,1fr));gap:12px}
 [data-study="directory-compact"] #task-description{min-height:110px}
+[data-study="directory-compact"] .task-card.drag-placeholder{outline:2px dashed var(--accent);outline-offset:-2px}
+[data-study="directory-compact"] .day-column.is-nonworking:not(.is-today) .column-heading,[data-study="directory-compact"] .strip-day.is-nonworking:not(.is-selected):not(.is-today),[data-study="directory-compact"] .month-cell.is-nonworking{background:#fff0f0}
+[data-study="directory-compact"] .mini-date.is-nonworking:not(.is-selected):not(.is-today){background:#fff0f0;color:#900}
+[data-study="directory-compact"] .day-column.is-nonworking .column-heading button,[data-study="directory-compact"] .strip-day.is-nonworking,[data-study="directory-compact"] .month-cell.is-nonworking .month-day-number,[data-study="directory-compact"] .daily-list.is-nonworking .daily-heading{color:#900}
+[data-study="directory-compact"] .month-weekdays>span:nth-last-child(-n+2),[data-study="directory-compact"] .sidebar .mini-weekday:nth-child(n+6){color:#900}
+[data-study="directory-compact"] .month-cell.outside-month.is-nonworking{background:#fff7f7}
 @media(max-width:1000px){[data-study="directory-compact"] .app-shell{--sidebar-width:145px;gap:15px}}
 @media(max-width:760px){[data-study="directory-compact"] body{padding-left:12px;padding-right:12px}[data-study="directory-compact"] .app-shell{--sidebar-width:125px;--calendar-bottom-space:10px;gap:12px}[data-study="directory-compact"] .sidebar{padding:12px 8px 10px 0}[data-study="directory-compact"] .planner-main{padding-top:12px}}
 @media(max-width:450px){[data-study="directory-compact"] body{padding-left:8px;padding-right:8px}[data-study="directory-compact"] .app-shell{--sidebar-width:110px;gap:10px}[data-study="directory-compact"] dialog .task-options{gap:8px}[data-study="directory-compact"] .task-options input,[data-study="directory-compact"] .task-options select{min-width:0;padding-left:4px;padding-right:4px}}
