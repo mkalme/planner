@@ -24,7 +24,7 @@ For local Google sign-in, put your **development public OAuth client ID** in `pu
 3. Configure `openid`, `email`, and `https://www.googleapis.com/auth/drive.appdata`. Do not request Gmail access or broad Drive access.
 4. Create a **Web application** OAuth client. Production Authorized JavaScript origin: **https://mkalme.github.io** (no `/planner/` path). The app uses Google's popup/token model, with no custom callback endpoint.
 5. Use a separate development Cloud project/client with origins `http://localhost:4173` and `http://127.0.0.1:4173`. Production origins should not include development addresses.
-6. In the GitHub repository, add Actions repository variable **GOOGLE_CLIENT_ID** with the production client ID. Complete any consent-screen production requirements shown by Google before regular use. Production status does not prevent short-lived browser tokens expiring; reconnect through the visible Google button when requested.
+6. The provided production client ID is configured in `public/config.js`. An optional Actions repository variable **GOOGLE_CLIENT_ID** overrides it during deployment. Complete any consent-screen production requirements shown by Google before regular use. Production status does not prevent short-lived browser tokens expiring; reconnect through the visible Google button when requested.
 
 References: [browser authorization](https://developers.google.com/identity/oauth2/web/guides/use-token-model), [OAuth client setup](https://developers.google.com/identity/oauth2/web/guides/get-google-api-clientid), [application-data folder](https://developers.google.com/workspace/drive/api/guides/appdata).
 
@@ -39,7 +39,7 @@ gh repo create mkalme/planner --public
 git push -u origin main
 ```
 
-If it already exists, inspect its contents before connecting this checkout; do not overwrite unrelated work. In repository **Settings → Pages**, choose **GitHub Actions** as the publishing source. Set the `GOOGLE_CLIENT_ID` Actions variable, then run the **Test and deploy planner** workflow. Pull requests run checks without deploying. The workflow intentionally refuses production deployment without a client ID.
+If it already exists, inspect its contents before connecting this checkout; do not overwrite unrelated work. In repository **Settings → Pages**, choose **GitHub Actions** as the publishing source, then run the **Test and deploy planner** workflow. Pull requests run checks without deploying. The workflow intentionally refuses production deployment without a configured client ID.
 
 `npm run build` copies only application assets to `dist/`. GitHub Pages publishes those assets; test artifacts, local recovery files, tokens, and Google account data are not deployed. The repository can be public while each account's Drive data stays private behind Google's permissions.
 
