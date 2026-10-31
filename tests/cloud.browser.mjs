@@ -72,8 +72,12 @@ try{
   for(const view of ['day','week','month','year']){await page.locator(`[data-view="${view}"]`).click();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);}
   await page.locator('[data-view=week]').click();
   await page.locator('[data-action=new]').first().click();await page.locator('#task-title').fill('Pārbaudīt saglabāšanu');
+  const originalColor=await page.locator('.task-color-button').evaluate(n=>getComputedStyle(n).backgroundColor);
+  await page.locator('.task-color-button').click();assert.notEqual(await page.locator('.task-color-button').evaluate(n=>getComputedStyle(n).backgroundColor),originalColor);
+  const chosenHue=await page.locator('.task-color-button').evaluate(n=>Number(n.style.getPropertyValue('--task-hue')));
   await page.locator('#task-priority').selectOption('high');await page.locator('#task-form button[type=submit]').click();
   await page.locator('#app[data-readonly]').waitFor();await ready();assert.equal(doc.tasks.length,1);assert.match(doc.tasks[0].comments[0].comment,/Prioritāte/);
+  assert.equal(doc.tasks[0].hue,chosenHue,'The generated color saves with the task');
   const id=doc.tasks[0].id,selector=`[data-task-id="${id}"]`;
   await page.locator(`${selector} [data-action=status]`).click();
   const statusMenuStyle=await page.locator('#quick-status [data-status=progress]').evaluate(n=>{const s=getComputedStyle(n);return {font:s.font,padding:s.padding,border:s.borderWidth};});
@@ -95,6 +99,10 @@ try{
   await page.reload();await ready();assert.equal(await page.locator(`${selector}.is-complete`).count(),1);
   assert.equal(await page.evaluate(()=>window.oauthRequests),0,'Refresh restores the session without opening Google authorization');
   assert.equal(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('mkalme-planner:google-session')).expiresAt),originalExpiry,'Refresh does not extend token lifetime');
+  await page.locator(`${selector} [data-action=edit]`).click();
+  assert.equal(await page.locator('.task-color-button').evaluate(n=>Number(n.style.getPropertyValue('--task-hue'))),chosenHue,'The chosen color survives reload');
+  await page.locator('.task-color-button').click();await page.locator('[data-action=close-dialog]').first().click();
+  assert.equal(doc.tasks[0].hue,chosenHue,'Canceling a color preview leaves the saved color unchanged');
   await page.locator(`${selector} [data-action=edit]`).click();await page.locator('#task-comment').fill('Saglabāta piezīme');
   await page.locator('[data-action=post-comment]').click();await ready();
   assert.equal(await page.locator('#task-dialog').evaluate(n=>n.open),true,'Saving a comment must preserve the open editor');

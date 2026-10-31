@@ -132,7 +132,7 @@ function openEditor(id=null,key=selected) {
   draftHue=task?.hue??randomHue();
   const dialog=document.querySelector('#task-dialog');
   dialog.innerHTML=`<form id="task-form">
-    <header class="dialog-header"><h2 id="dialog-heading">${task?'Rediģēt uzdevumu':'Jauns uzdevums'}</h2>${button('close-dialog','Aizvērt uzdevumu','close')}</header>
+    <header class="dialog-header"><h2 id="dialog-heading">${task?'Rediģēt uzdevumu':'Jauns uzdevums'}</h2><div class="dialog-tools"><button class="task-color-button" data-action="color" type="button" style="${taskColorStyle(draftHue)}" title="Ģenerēt citu uzdevuma krāsu" aria-label="Ģenerēt citu uzdevuma krāsu"><span aria-hidden="true">↻</span></button>${button('close-dialog','Aizvērt uzdevumu','close')}</div></header>
     <div class="field"><label for="task-title">Nosaukums</label><input id="task-title" name="title" placeholder="Uzdevuma nosaukums" value="${esc(task?.title||'')}" maxlength="120" required autocomplete="off"></div>
     <div class="field"><label for="task-description">Apraksts <span>nav obligāti</span></label><textarea id="task-description" name="description" placeholder="Papildu informācija" rows="5" maxlength="3000">${esc(task?.description||'')}</textarea></div>
     <div class="task-options"><div class="field"><label for="task-date">Datums</label><input id="task-date" name="date" type="date" lang="lv" value="${task?.date||key}" min="1900-01-01" max="9999-12-31" required></div><div class="field"><label for="task-status">Statuss</label><select id="task-status" name="status">${Object.entries(STATUSES).map(([value,label])=>`<option value="${value}" ${(task?.status||'new')===value?'selected':''}>${label}</option>`).join('')}</select></div><div class="field"><label for="task-priority">Prioritāte</label><select id="task-priority" name="priority">${Object.entries(PRIORITIES).map(([value,label])=>`<option value="${value}" ${(task?.priority||'normal')===value?'selected':''}>${label}</option>`).join('')}</select></div></div>
@@ -180,6 +180,11 @@ root.addEventListener('click',event=>{
     root.querySelector(`[data-task-id="${CSS.escape(id)}"] [data-action="status"]`)?.focus();return;
   }
   if(action==='close-dialog')return closeEditor();
+  if(action==='color'){
+    const current=classicTaskColors(draftHue).background;
+    const choices=Array.from({length:8},(_,i)=>i*45).filter(hue=>classicTaskColors(hue).background!==current);
+    draftHue=choices[Math.floor(Math.random()*choices.length)];element.style.cssText=taskColorStyle(draftHue);return;
+  }
   if(action==='post-comment'){
     const input=document.querySelector('#task-comment');if(!input.value.trim())return input.focus();
     const task=addTaskComment(tasks,editing,input.value);input.value='';editorCommentsChanged=true;
