@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {classicTaskColors,generateDayTaskHue} from '../public/retro/1990s-colors.js';
 import {dateKey,fromKey,addDays,weekStart,monthDays,shiftPeriod,sortTasks,moveTask,updateTask,isMissed,seedTasks,validateTask,loadTasks,randomHue,createTask,addTaskComment} from '../public/planner.js';
 const make=(id,date='2026-10-31',order=0,status='new')=>({id,date,order,status,title:id,description:'A task',priority:'normal',hue:140,comments:[]});
 test('calendar dates cross month, leap-year, and week boundaries without UTC offsets',()=>{
@@ -113,4 +114,28 @@ test('explicit color changes update only the chosen task and survive reload',()=
   for(const previous of [0,140,359,143.5]){
     const next=randomHue(previous);assert.ok(Number.isInteger(next)&&next>=0&&next<360);assert.notEqual(next,previous);
   }
+});
+test('automatic retro colors prefer an unused visible color on the chosen day',()=>{
+  const tasks=Array.from({length:7},(_,i)=>({...make(String(i)),hue:i*45+5,status:i%2?'complete':'new'}));
+  const snapshot=structuredClone(tasks),hue=generateDayTaskHue(tasks,'2026-10-31');
+  assert.equal(classicTaskColors(hue).background,classicTaskColors(315).background);
+  assert.deepEqual(tasks,snapshot,'Choosing a color never recolors existing tasks, including completed ones');
+});
+test('when all retro colors are used, color generation falls back to random palette choices',t=>{
+  const tasks=Array.from({length:8},(_,i)=>({...make(String(i)),hue:i*45}));
+  t.mock.method(Math,'random',()=>0);assert.equal(generateDayTaskHue(tasks,'2026-10-31'),0);
+  t.mock.method(Math,'random',()=>0.999);assert.equal(generateDayTaskHue(tasks,'2026-10-31'),315);
+});
+test('tasks on another day do not reserve colors',t=>{
+  t.mock.method(Math,'random',()=>0);
+  const tasks=[{...make('other','2026-11-01'),hue:0}];
+  assert.equal(generateDayTaskHue(tasks,'2026-10-31'),0);
+});
+test('regeneration avoids the previous visible color and prefers unused colors before random fallback',t=>{
+  t.mock.method(Math,'random',()=>0);
+  const tasks=[{...make('edit'),hue:0},{...make('other'),hue:45}];
+  assert.equal(generateDayTaskHue(tasks,'2026-10-31',{excludeTaskId:'edit',previousHue:0}),90);
+  const full=Array.from({length:8},(_,i)=>({...make(String(i)),hue:i*45}));
+  const next=generateDayTaskHue(full,'2026-10-31',{previousHue:0});
+  assert.notEqual(classicTaskColors(next).background,classicTaskColors(0).background);
 });

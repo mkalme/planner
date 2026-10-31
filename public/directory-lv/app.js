@@ -1,15 +1,15 @@
 import {startCloudPlanner} from '../cloud-ui.js';
 import {installTaskDrag} from '../drag-preview.js';
-import {classicTaskColors} from '../retro/1990s-colors.js';
+import {classicTaskColors,generateDayTaskHue} from '../retro/1990s-colors.js';
 import {latvianDayInfo} from '../latvian-holidays.js';
-import {STORAGE_KEY,STATUSES,PRIORITIES,dateKey,fromKey,addDays,weekStart,monthDays,shiftPeriod,randomHue,createTask,addTaskComment,isMissed,sortTasks,loadTasks,moveTask,updateTask,activityText} from './planner.js';
+import {STORAGE_KEY,STATUSES,PRIORITIES,dateKey,fromKey,addDays,weekStart,monthDays,shiftPeriod,createTask,addTaskComment,isMissed,sortTasks,loadTasks,moveTask,updateTask,activityText} from './planner.js';
 
 const root=document.querySelector('#app');
 const headerObserver=new ResizeObserver(positionSidebarEdge);
 const studyTitle='Mans plānotājs';
 let today=dateKey(new Date()), selected=today;
 let view='week';
-let tasks=[], editing=null, draftHue=140, dragId=null, toastTimer, quickTrigger=null, editorCommentsChanged=false;
+let tasks=[], editing=null, draftHue=140, draftColorChosen=false, dragId=null, toastTimer, quickTrigger=null, editorCommentsChanged=false;
 let cloud;
 const expandedMonthDates=new Set();
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -129,7 +129,7 @@ function openEditor(id=null,key=selected) {
   closeQuickStatus();
   editing=id;editorCommentsChanged=false;const task=id?tasks.find(task=>task.id===id):null;
   if(id&&!task)return;
-  draftHue=task?.hue??randomHue();
+  draftHue=task?.hue??generateDayTaskHue(tasks,key);draftColorChosen=false;
   const dialog=document.querySelector('#task-dialog');
   dialog.innerHTML=`<form id="task-form">
     <header class="dialog-header"><h2 id="dialog-heading">${task?'Rediģēt uzdevumu':'Jauns uzdevums'}</h2><div class="dialog-tools"><button class="task-color-button" data-action="color" type="button" style="${taskColorStyle(draftHue)}" title="Ģenerēt citu uzdevuma krāsu" aria-label="Ģenerēt citu uzdevuma krāsu"><span aria-hidden="true">↻</span></button>${button('close-dialog','Aizvērt uzdevumu','close')}</div></header>
@@ -181,9 +181,8 @@ root.addEventListener('click',event=>{
   }
   if(action==='close-dialog')return closeEditor();
   if(action==='color'){
-    const current=classicTaskColors(draftHue).background;
-    const choices=Array.from({length:8},(_,i)=>i*45).filter(hue=>classicTaskColors(hue).background!==current);
-    draftHue=choices[Math.floor(Math.random()*choices.length)];element.style.cssText=taskColorStyle(draftHue);return;
+    draftHue=generateDayTaskHue(tasks,document.querySelector('#task-date').value,{excludeTaskId:editing,previousHue:draftHue});
+    draftColorChosen=true;element.style.cssText=taskColorStyle(draftHue);return;
   }
   if(action==='post-comment'){
     const input=document.querySelector('#task-comment');if(!input.value.trim())return input.focus();
@@ -224,6 +223,12 @@ root.addEventListener('invalid',event=>{
   event.target.setCustomValidity(event.target.id==='task-title'?'Ierakstiet uzdevuma nosaukumu.':event.target.id==='task-date'?'Izvēlieties derīgu datumu.':'Aizpildiet šo lauku.');
 },true);
 root.addEventListener('input',event=>{if(event.target.setCustomValidity)event.target.setCustomValidity('');});
+root.addEventListener('change',event=>{
+  if(event.target.id==='task-date'&&!editing&&!draftColorChosen&&event.target.validity.valid){
+    draftHue=generateDayTaskHue(tasks,event.target.value);
+    document.querySelector('.task-color-button').style.cssText=taskColorStyle(draftHue);
+  }
+});
 root.addEventListener('submit',event=>{
   if(event.target.id!=='task-form')return;event.preventDefault();
   const data=new FormData(event.target),fields={title:data.get('title').trim(),description:data.get('description').trim(),date:data.get('date'),priority:data.get('priority'),status:data.get('status'),hue:draftHue};

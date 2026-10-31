@@ -79,6 +79,12 @@ try{
   await page.locator('#app[data-readonly]').waitFor();await ready();assert.equal(doc.tasks.length,1);assert.match(doc.tasks[0].comments[0].comment,/Prioritāte/);
   assert.equal(doc.tasks[0].hue,chosenHue,'The generated color saves with the task');
   const id=doc.tasks[0].id,selector=`[data-task-id="${id}"]`;
+  const savedBand=await page.locator(selector).evaluate(n=>getComputedStyle(n).borderLeftColor);
+  await page.locator('[data-action=new]').first().click();
+  assert.notEqual(await page.locator('.task-color-button').evaluate(n=>getComputedStyle(n).backgroundColor),savedBand,'New task defaults avoid colors already used that day');
+  await page.locator('.task-color-button').click();
+  assert.notEqual(await page.locator('.task-color-button').evaluate(n=>getComputedStyle(n).backgroundColor),savedBand,'Regeneration also prefers unused colors');
+  await page.locator('[data-action=close-dialog]').first().click();assert.equal(doc.tasks.length,1);
   await page.locator(`${selector} [data-action=status]`).click();
   const statusMenuStyle=await page.locator('#quick-status [data-status=progress]').evaluate(n=>{const s=getComputedStyle(n);return {font:s.font,padding:s.padding,border:s.borderWidth};});
   await page.locator('#quick-status [data-status=complete]').click();await ready();assert.equal(doc.tasks[0].status,'complete');

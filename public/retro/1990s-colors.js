@@ -29,3 +29,11 @@ export function classicTaskColors(hue,indexed=false){
   // Lift only HSL lightness, preserving each palette color's hue and saturation.
   return {background,completed:`hsl(from ${background} h s calc(l + (100 - l) * .7))`};
 }
+export function generateDayTaskHue(tasks,date,{excludeTaskId=null,previousHue=null}={}){
+  const used=new Set(tasks.filter(task=>task.date===date&&task.id!==excludeTaskId).map(task=>classicTaskColors(task.hue).background));
+  const previous=previousHue===null?null:classicTaskColors(previousHue).background;
+  const choices=palette.map((_,index)=>index*45).filter(hue=>classicTaskColors(hue).background!==previous);
+  const available=choices.filter(hue=>!used.has(classicTaskColors(hue).background));
+  const candidates=available.length?available:choices;
+  return candidates[Math.floor(Math.random()*candidates.length)];
+}
