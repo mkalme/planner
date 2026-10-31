@@ -2,7 +2,7 @@
 
 Personal, Latvian-only planner for **mkalme/planner**, hosted at **https://mkalme.github.io/planner/**. Plain static HTML/CSS/JavaScript, Google authorization and a private `planner.json` file in Google Drive's hidden application-data folder. No server, database subscription, or account data in GitHub.
 
-The selected compact-directory design retains the wide layout, original task editor and yellow selected-view highlight, full-height edge-to-edge gray sidebar, light appearance, and overlay-only drag previews. Tasks retain their color when moved. Status and priority changes add Latvian activity entries; personal comments remain optional.
+The selected compact-directory design retains the wide layout, original task editor and yellow selected-view highlight, gray sidebar, light appearance, and overlay-only drag previews. The page has a small 8px inset along its left and bottom edges. Tasks retain their color when moved. Status and priority changes add Latvian activity entries; personal comments remain optional.
 
 The app fills the viewport at every width; there is no fixed desktop width cap or outer page scrollbar. Long calendar content remains scrollable within its panel or day column using touch, wheel or keyboard (focus the calendar first). The sidebar calendar, heading and bottom privacy link share aligned edges, and its heading divider follows the main header height.
 
