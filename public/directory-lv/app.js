@@ -66,8 +66,8 @@ window.addEventListener('resize',positionSidebarEdge);
 function taskColorStyle(hue){
   const base=`--task-hue:${hue}`;
   if(document.documentElement.dataset.era!=='1990s')return base;
-  const colors=classicTaskColors(hue,document.documentElement.dataset.study.startsWith('classic-'));
-  return `${base};--classic-color:${colors.background};--classic-complete:${colors.completed}`;
+  const colors=classicTaskColors(hue);
+  return `${base};--classic-color:${colors.background};--classic-complete:${colors.completed};--classic-ink:${colors.ink}`;
 }
 function taskCard(task,compact=false) {
   const past=isMissed(task,today),muted=task.status==='complete'||task.status==='canceled'||past;

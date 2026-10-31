@@ -21,7 +21,7 @@ html[data-study="directory-compact"]{height:100%;overflow:hidden}
 [data-study="directory-compact"] dialog .task-options{display:grid;grid-template-columns:minmax(0,1.35fr) repeat(2,minmax(0,1fr));gap:12px}
 [data-study="directory-compact"] #task-description{min-height:110px}
 [data-study="directory-compact"] .dialog-tools{display:flex;align-items:center;gap:6px;flex-shrink:0}
-[data-study="directory-compact"] .task-color-button{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;padding:0;border:1px solid var(--line);background:var(--classic-color);color:#000;font:17px/1 "Times New Roman",Times,serif}
+[data-study="directory-compact"] .task-color-button{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;padding:0;border:1px solid var(--line);background:var(--classic-color);color:var(--classic-ink,#000);font:17px/1 "Times New Roman",Times,serif}
 [data-study="directory-compact"] .task-card.drag-placeholder{outline:2px dashed var(--accent);outline-offset:-2px}
 [data-study="directory-compact"] .day-column.is-nonworking:not(.is-today) .column-heading,[data-study="directory-compact"] .strip-day.is-nonworking:not(.is-selected):not(.is-today),[data-study="directory-compact"] .month-cell.is-nonworking{background:#fff0f0}
 [data-study="directory-compact"] .mini-date.is-nonworking:not(.is-selected):not(.is-today){background:#fff0f0;color:#900}
