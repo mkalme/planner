@@ -1,7 +1,7 @@
 html[data-study="directory-compact"]{height:100%;overflow:hidden}
 [data-study="directory-compact"] body{height:100dvh;padding:0 24px 8px;overflow:hidden;display:flex;flex-direction:column}
 [data-study="directory-compact"] #app{flex:1;min-height:0;width:100%}
-[data-study="directory-compact"] .app-shell{height:100%;min-height:0;max-width:none;margin:0;grid-template-columns:155px minmax(0,1fr);gap:20px}
+[data-study="directory-compact"] .app-shell{height:100%;min-height:0;max-width:1440px;margin:0 auto;grid-template-columns:155px minmax(0,1fr);gap:20px}
 [data-study="directory-compact"] .sidebar{background:none;box-shadow:none;border-right:1px solid var(--line);padding:18px 12px 14px 0;min-height:0;overflow:auto;scrollbar-width:none}
 [data-study="directory-compact"] .sidebar::before{content:'Kalendārs';box-sizing:border-box;height:var(--header-height);min-height:var(--header-height);padding:0;margin:0 0 14px;display:flex;align-items:center;border-bottom:1px solid var(--line);flex-shrink:0}
 [data-study="directory-compact"] .sidebar::after{display:none}

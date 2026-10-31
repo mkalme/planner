@@ -4,7 +4,7 @@ Personal, Latvian-only planner for **mkalme/planner**, hosted at **https://mkalm
 
 The selected compact-directory design retains the wide layout, yellow selected-view highlight, light appearance, and overlay-only drag previews. The narrow white sidebar follows the original directory prototype, with a yellow calendar heading and a thin vertical divider. Matching left and right page insets follow the prototype: 24px on desktop, 12px on tablet and 8px on small phones; the bottom inset is 8px. The task editor has a taller description and a single row for date, status and priority. Task colors are assigned automatically, with no color picker in the editor, and remain unchanged when tasks move or are edited. Status and priority changes add Latvian activity entries; personal comments remain optional.
 
-The app fills the viewport at every width; there is no fixed desktop width cap or outer page scrollbar. Long calendar content remains scrollable within its panel or day column using touch, wheel or keyboard (focus the calendar first). The sidebar calendar, heading and bottom privacy link share aligned edges, and its heading divider follows the main header height.
+The app fits the viewport height without an outer page scrollbar. Its layout is centered at a maximum width of 1440px, matching the prototype's effective left and right margins on wide screens; narrower screens use the responsive page padding. Long calendar content remains scrollable within its panel or day column using touch, wheel or keyboard (focus the calendar first). The sidebar calendar, heading and bottom privacy link share aligned edges, and its heading divider follows the main header height.
 
 ## Local development
 

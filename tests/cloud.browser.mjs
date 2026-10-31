@@ -52,8 +52,9 @@ try{
       return {w:innerWidth,h:innerHeight,dw:document.documentElement.scrollWidth,dh:document.documentElement.scrollHeight,app:rect('.app-shell').width,side:side.toJSON(),line:side.top+parseFloat(getComputedStyle(document.querySelector('.sidebar')).paddingTop)+parseFloat(getComputedStyle(document.querySelector('.sidebar'),'::before').height),header:header.toJSON(),calendar:calendar.toJSON(),privacy:privacy.toJSON(),create:create.toJSON(),login:login?.toJSON()};
     });
     const pageInset=metrics.w<=450?8:metrics.w<=760?12:24;
-    assert.equal(metrics.dw,metrics.w);assert.equal(metrics.dh,metrics.h);assert.equal(metrics.app,metrics.w-pageInset*2,'Use available width after the prototype page insets, including zoomed-out layouts');
-    assert.equal(metrics.side.top,0);assert.equal(metrics.side.left,pageInset);assert.equal(metrics.side.bottom,metrics.h-8);assert.equal(metrics.header.right,metrics.w-pageInset,'Left and right page insets match');
+    const plannerWidth=Math.min(1440,metrics.w-pageInset*2),sideMargin=(metrics.w-plannerWidth)/2;
+    assert.equal(metrics.dw,metrics.w);assert.equal(metrics.dh,metrics.h);assert.equal(metrics.app,plannerWidth,'Match the centered prototype width, including zoomed-out layouts');
+    assert.equal(metrics.side.top,0);assert.equal(metrics.side.left,sideMargin);assert.equal(metrics.side.bottom,metrics.h-8);assert.equal(metrics.header.right,metrics.w-sideMargin,'Left and right page margins match the prototype');
     assert.ok(Math.abs(metrics.line-metrics.header.bottom)<1,`Calendar and header dividers align: ${metrics.line}, ${metrics.header.bottom}, width ${metrics.w}`);
     assert.ok(Math.abs(metrics.calendar.left-metrics.privacy.left)<1,'Privacy and calendar share a left edge');
     assert.ok(Math.abs(metrics.calendar.left-metrics.side.left)<1,'Calendar follows the plain directory sidebar left edge');
