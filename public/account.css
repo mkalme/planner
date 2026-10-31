@@ -7,6 +7,9 @@
 #account summary{cursor:pointer;color:#00e;text-decoration:underline;max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:3px 0}
 #account .account-actions{position:absolute;right:0;top:100%;min-width:170px;max-width:min(240px,calc(100vw - 24px));padding:4px;border:1px solid #888;background:#fff;display:grid;gap:3px;z-index:50}
 #account .account-actions button{text-align:left;white-space:normal}
+#account>button,#account summary,[data-study="directory-compact"] .header-actions>.primary-btn{box-sizing:border-box;height:28px;min-height:28px;margin:0;padding:4px 8px;border:1px solid #aaa;background:#eee;font:12px/18px "Times New Roman",serif}
+#account summary{display:block;line-height:18px}
+#account summary::after{content:' ▾'}
 #account a{color:#00e}
 #app[data-readonly] [data-action=new],#app[data-readonly] [data-action=status],#app[data-readonly] [data-action=order-up],#app[data-readonly] [data-action=order-down]{opacity:.45}
 #app[data-readonly] .task-card{cursor:default}

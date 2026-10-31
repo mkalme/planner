@@ -4,6 +4,7 @@ import {classicTaskColors} from '../retro/1990s-colors.js';
 import {STORAGE_KEY,STATUSES,PRIORITIES,dateKey,fromKey,addDays,weekStart,monthDays,shiftPeriod,randomHue,createTask,addTaskComment,isMissed,sortTasks,loadTasks,moveTask,updateTask,activityText} from './planner.js';
 
 const root=document.querySelector('#app');
+const headerObserver=new ResizeObserver(positionSidebarEdge);
 const studyTitle='Mans plānotājs';
 let today=dateKey(new Date()), selected=today;
 let view='week';
@@ -46,13 +47,17 @@ function sidebar() {
 }
 function render() {
   const accountBar=document.querySelector('#account');
+  const privacy=document.querySelector('#privacy');
   root.innerHTML=`<div class="app-shell">${sidebar()}<main class="planner-main"><header class="planner-header"><h1>${studyTitle}</h1><div class="header-actions"><button class="primary-btn" data-action="new">${icon('plus')} Jauns uzdevums</button></div></header><div class="planner-toolbar"><div class="date-controls"><h2>${dateTitle()}</h2><div class="date-arrows">${button('prev','Iepriekšējais periods','left')}${button('next','Nākamais periods','right')}</div><button class="today-btn" data-action="today">Šodien</button></div><nav class="view-switch" aria-label="Kalendāra skats">${['day','week','month','year'].map(v=>`<button data-action="view" data-view="${v}" ${view===v?'aria-current="true"':''}>${({day:'Diena',week:'Nedēļa',month:'Mēnesis',year:'Gads'})[v]}</button>`).join('')}</nav></div><div id="planner-content" class="view-${view}">${renderView()}</div></main></div><dialog id="task-dialog" aria-labelledby="dialog-heading"></dialog><div id="quick-status" class="quick-status" popover="auto" role="menu" aria-label="Uzdevuma statuss"></div><div id="toast" role="status" aria-live="polite"></div>`;
   if(accountBar)root.querySelector('.header-actions').prepend(accountBar);
+  if(privacy)root.querySelector('.sidebar').append(privacy);
+  const content=root.querySelector('#planner-content');content.tabIndex=0;content.setAttribute('aria-label','Kalendāra uzdevumi');
+  headerObserver.disconnect();headerObserver.observe(root.querySelector('.planner-header'));
   requestAnimationFrame(positionSidebarEdge);
 }
 function positionSidebarEdge(){
   const sidebar=root.querySelector('.sidebar');
-  if(sidebar)sidebar.style.setProperty('--sidebar-edge',`${sidebar.getBoundingClientRect().right-1}px`);
+  if(sidebar)sidebar.style.setProperty('--header-height',`${root.querySelector('.planner-header').getBoundingClientRect().height}px`);
 }
 window.addEventListener('resize',positionSidebarEdge);
 function taskColorStyle(hue){

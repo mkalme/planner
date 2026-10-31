@@ -40,7 +40,28 @@ try{
   }
   const connect=async()=>{await accountAction('Pieslēgt Google kontu');await page.locator('#app:not([data-readonly])').waitFor();};
   const ready=()=>page.locator('#account [role=status]').filter({hasText:'Saglabāts'}).waitFor();
+  async function frame(){
+    await page.waitForFunction(()=>{
+      const side=document.querySelector('.sidebar'),head=document.querySelector('.planner-header');
+      return side&&head&&Math.abs(side.getBoundingClientRect().top+parseFloat(getComputedStyle(side).paddingTop)+parseFloat(getComputedStyle(side,'::before').height)-head.getBoundingClientRect().bottom)<1;
+    },null,{timeout:5000});
+    const metrics=await page.evaluate(()=>{
+      const rect=selector=>document.querySelector(selector)?.getBoundingClientRect();
+      const side=rect('.sidebar'),header=rect('.planner-header'),calendar=rect('.sidebar .mini-calendar'),privacy=rect('#privacy'),create=rect('.header-actions>.primary-btn');
+      const login=rect('#account summary')||rect('#account>button');
+      return {w:innerWidth,h:innerHeight,dw:document.documentElement.scrollWidth,dh:document.documentElement.scrollHeight,app:rect('.app-shell').width,side:side.toJSON(),line:side.top+parseFloat(getComputedStyle(document.querySelector('.sidebar')).paddingTop)+parseFloat(getComputedStyle(document.querySelector('.sidebar'),'::before').height),header:header.toJSON(),calendar:calendar.toJSON(),privacy:privacy.toJSON(),create:create.toJSON(),login:login?.toJSON()};
+    });
+    assert.equal(metrics.dw,metrics.w);assert.equal(metrics.dh,metrics.h);assert.equal(metrics.app,metrics.w,'Use all available width, including zoomed-out layouts');
+    assert.equal(metrics.side.top,0);assert.equal(metrics.side.bottom,metrics.h);
+    assert.ok(Math.abs(metrics.line-metrics.header.bottom)<1,`Calendar and header dividers align: ${metrics.line}, ${metrics.header.bottom}, width ${metrics.w}`);
+    assert.ok(Math.abs(metrics.calendar.left-metrics.privacy.left)<1,'Privacy and calendar share a left edge');
+    assert.ok(Math.abs(metrics.calendar.left-(metrics.side.right-metrics.calendar.right-1))<1,'Calendar is evenly inset in gray sidebar');
+    assert.equal(metrics.login.height,metrics.create.height,'Account and create controls have equal heights');
+    assert.ok(metrics.create.right<=metrics.w&&metrics.login.left>=metrics.header.left);
+  }
   await page.goto('http://127.0.0.1:4173/planner/');await page.locator('#app[data-readonly]').waitFor();
+  for(const viewport of [{width:1440,height:900},{width:390,height:844}]){await page.setViewportSize(viewport);await frame();}
+  await page.setViewportSize({width:1440,height:1000});
   assert.equal(await page.locator('[data-task-id]').count(),0);
   await page.evaluate(()=>window.mockDeny=true);await page.getByRole('button',{name:'Pieslēgt Google kontu'}).click();
   await page.getByRole('status').filter({hasText:'Google piekļuve nav piešķirta.'}).waitFor();
@@ -76,20 +97,31 @@ try{
   unauthorized=true;await accountAction('Atjaunot');await page.locator('#account[data-state=error],#account[data-state=expired]').waitFor();assert.equal(await page.locator('[data-action=new]').first().isDisabled(),true);
   await accountAction('Iziet');assert.equal(await page.locator('[data-task-id]').count(),0);assert.doesNotMatch(await page.locator('#account').innerText(),/account-1@/);
   accounts.set(1,{doc,version});account=2;doc=null;version=0;await connect();assert.deepEqual(doc.tasks,[]);
-  for(const viewport of [{width:1440,height:900},{width:1024,height:768},{width:390,height:844}]){
+  for(const viewport of [{width:2560,height:1440},{width:1920,height:1080},{width:1440,height:900},{width:1024,height:600},{width:640,height:480},{width:390,height:844}]){
     await page.setViewportSize(viewport);await page.locator('[data-view=week]').click();
     await page.waitForTimeout(50);
     assert.equal(await page.locator('.planner-header #account').count(),1,'Account controls stay inside the header after rerender');
     assert.equal(await page.locator('.planner-footer').count(),0);
     assert.equal(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight&&document.documentElement.scrollWidth<=innerWidth),true,'Empty week has no unnecessary page scrollbar');
-    const edge=await page.locator('.sidebar').evaluate(n=>{const r=n.getBoundingClientRect(),s=getComputedStyle(n,'::after');return {expected:r.right-1,left:parseFloat(s.left),top:s.top,bottom:s.bottom,position:s.position};});
-    assert.equal(edge.position,'fixed');assert.equal(edge.top,'0px');assert.equal(edge.bottom,'0px');assert.ok(Math.abs(edge.left-edge.expected)<1);
+    await frame();
     const actions=await page.locator('.header-actions').evaluate(n=>[...n.children].map(c=>{const r=c.getBoundingClientRect();return {y:r.y,h:r.height};}));
     assert.ok(Math.abs(actions[0].y+actions[0].h/2-actions[1].y-actions[1].h/2)<2,'Account controls align with create task button');
     await page.locator('#account summary').click();assert.equal(await page.getByRole('button',{name:'Lejupielādēt',exact:true}).isVisible(),true);
     await page.locator('#account summary').press('Escape');assert.equal(await page.locator('#account details').getAttribute('open'),null);
     if(viewport.width===1440)await page.screenshot({path:'artifacts/compact-header-desktop.png',fullPage:true});
   }
+  const today=await page.locator('.day-column.is-today').getAttribute('data-drop-date');
+  doc.tasks=Array.from({length:35},(_,i)=>({id:`dense-${i}`,title:`Garāks uzdevums ${i}`,description:'',date:today,status:'new',priority:'normal',hue:i*10,order:i,comments:[]}));version++;
+  await accountAction('Atjaunot');await ready();
+  for(const view of ['week','day','month','year']){
+    await page.locator(`[data-view="${view}"]`).click();await frame();
+    assert.equal(await page.locator('#planner-content').evaluate(n=>getComputedStyle(n).scrollbarWidth),'none');
+  }
+  await page.locator('[data-view=week]').click();
+  const column=page.locator('.day-column.is-today .column-tasks');
+  assert.equal(await column.evaluate(n=>n.scrollHeight>n.clientHeight),true,'Long task lists scroll inside their column');
+  await column.evaluate(n=>n.scrollTop=n.scrollHeight);
+  assert.equal(await page.locator('[data-task-id="dense-34"]').evaluate(n=>{const a=n.getBoundingClientRect(),b=n.closest('.column-tasks').getBoundingClientRect();return a.bottom<=b.bottom+1}),true,'Last task remains reachable');
   await page.setViewportSize({width:390,height:844});
   for(const view of ['day','week','month','year']){await page.locator(`[data-view="${view}"]`).click();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);}
   await page.screenshot({path:'artifacts/mobile.png',fullPage:true});assert.deepEqual(errors,[]);
