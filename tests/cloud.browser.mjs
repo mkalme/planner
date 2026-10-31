@@ -75,9 +75,11 @@ try{
   const originalColor=await page.locator('.task-color-button').evaluate(n=>getComputedStyle(n).backgroundColor);
   await page.locator('.task-color-button').click();assert.notEqual(await page.locator('.task-color-button').evaluate(n=>getComputedStyle(n).backgroundColor),originalColor);
   const chosenHue=await page.locator('.task-color-button').evaluate(n=>Number(n.style.getPropertyValue('--task-hue')));
+  const chosenColor=await page.locator('.task-color-button').evaluate(n=>n.style.getPropertyValue('--classic-color'));
   await page.locator('#task-priority').selectOption('high');await page.locator('#task-form button[type=submit]').click();
   await page.locator('#app[data-readonly]').waitFor();await ready();assert.equal(doc.tasks.length,1);assert.match(doc.tasks[0].comments[0].comment,/Prioritāte/);
   assert.equal(doc.tasks[0].hue,chosenHue,'The generated color saves with the task');
+  assert.equal(doc.tasks[0].color,chosenColor,'Persist the actual color rather than relying on palette position');
   const id=doc.tasks[0].id,selector=`[data-task-id="${id}"]`;
   const savedBand=await page.locator(selector).evaluate(n=>getComputedStyle(n).borderLeftColor);
   await page.locator('[data-action=new]').first().click();
@@ -107,8 +109,10 @@ try{
   assert.equal(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('mkalme-planner:google-session')).expiresAt),originalExpiry,'Refresh does not extend token lifetime');
   await page.locator(`${selector} [data-action=edit]`).click();
   assert.equal(await page.locator('.task-color-button').evaluate(n=>Number(n.style.getPropertyValue('--task-hue'))),chosenHue,'The chosen color survives reload');
+  assert.equal(await page.locator('.task-color-button').evaluate(n=>n.style.getPropertyValue('--classic-color')),chosenColor,'Reload uses the saved color');
   await page.locator('.task-color-button').click();await page.locator('[data-action=close-dialog]').first().click();
   assert.equal(doc.tasks[0].hue,chosenHue,'Canceling a color preview leaves the saved color unchanged');
+  assert.equal(doc.tasks[0].color,chosenColor);
   await page.locator(`${selector} [data-action=edit]`).click();await page.locator('#task-comment').fill('Saglabāta piezīme');
   await page.locator('[data-action=post-comment]').click();await ready();
   assert.equal(await page.locator('#task-dialog').evaluate(n=>n.open),true,'Saving a comment must preserve the open editor');

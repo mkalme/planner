@@ -3,12 +3,13 @@ import assert from 'node:assert/strict';
 import {documentFor,importDocument,documentFingerprint} from '../public/document.js';
 import {DriveStore,ConflictError} from '../public/drive.js';
 test('imports validate schema, preserve text and reject duplicate IDs and invalid data',()=>{
-  const t={id:'a',title:'Darbs <b>',description:'Mana piezīme',date:'2026-10-31',hue:125,order:0,status:'new',priority:'normal',comments:[]};
+  const t={id:'a',title:'Darbs <b>',description:'Mana piezīme',date:'2026-10-31',hue:125,color:'#ff2455',order:0,status:'new',priority:'normal',comments:[]};
   assert.deepEqual(importDocument(JSON.stringify([t])).tasks,[t]);
   assert.throws(()=>importDocument('{bad'));
   assert.throws(()=>importDocument(JSON.stringify({schemaVersion:2,tasks:[]})));
   assert.throws(()=>documentFor([t,t]));assert.throws(()=>documentFor([{...t,date:'2026-02-31'}]));
   assert.throws(()=>documentFor([{...t,comments:[{status:'new',comment:'x',at:'invalid'}]}]));
+  assert.throws(()=>documentFor([{...t,color:'red;background:black'}]));
 });
 test('remote version mismatch rejects stale saves without uploading',async()=>{
   const remote=documentFor([]);let uploads=0;

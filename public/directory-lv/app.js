@@ -1,6 +1,6 @@
 import {startCloudPlanner} from '../cloud-ui.js';
 import {installTaskDrag} from '../drag-preview.js';
-import {classicTaskColors,generateDayTaskHue} from '../retro/1990s-colors.js';
+import {classicTaskColors,generateDayTaskHue,getTaskColor,withStableTaskColors} from '../retro/1990s-colors.js';
 import {latvianDayInfo} from '../latvian-holidays.js';
 import {STORAGE_KEY,STATUSES,PRIORITIES,dateKey,fromKey,addDays,weekStart,monthDays,shiftPeriod,createTask,addTaskComment,isMissed,sortTasks,loadTasks,moveTask,updateTask,activityText} from './planner.js';
 
@@ -9,7 +9,7 @@ const headerObserver=new ResizeObserver(positionSidebarEdge);
 const studyTitle='Mans plānotājs';
 let today=dateKey(new Date()), selected=today;
 let view='week';
-let tasks=[], editing=null, draftHue=140, draftColorChosen=false, dragId=null, toastTimer, quickTrigger=null, editorCommentsChanged=false;
+let tasks=[], editing=null, draftHue=140, draftColor=null, draftColorChosen=false, dragId=null, toastTimer, quickTrigger=null, editorCommentsChanged=false;
 let cloud;
 const expandedMonthDates=new Set();
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -63,16 +63,16 @@ function positionSidebarEdge(){
   if(sidebar)sidebar.style.setProperty('--header-height',`${root.querySelector('.planner-header').getBoundingClientRect().height}px`);
 }
 window.addEventListener('resize',positionSidebarEdge);
-function taskColorStyle(hue){
+function taskColorStyle(hue,color){
   const base=`--task-hue:${hue}`;
   if(document.documentElement.dataset.era!=='1990s')return base;
-  const colors=classicTaskColors(hue);
+  const colors=classicTaskColors(hue,color);
   return `${base};--classic-color:${colors.background};--classic-complete:${colors.completed};--classic-ink:${colors.ink}`;
 }
 function taskCard(task,compact=false) {
   const past=isMissed(task,today),muted=task.status==='complete'||task.status==='canceled'||past;
   const status=STATUSES[task.status];
-  return `<article class="task-card ${compact?'compact':''} ${muted?'is-muted':''} ${past?'is-missed':''} ${task.status==='complete'?'is-complete':''} ${task.status==='canceled'?'is-canceled':''}" style="${taskColorStyle(task.hue)}" draggable="true" data-task-id="${esc(task.id)}" data-task-date="${task.date}" aria-label="${esc(task.title)}, ${status}${past?', nepaveikts':''}">
+  return `<article class="task-card ${compact?'compact':''} ${muted?'is-muted':''} ${past?'is-missed':''} ${task.status==='complete'?'is-complete':''} ${task.status==='canceled'?'is-canceled':''}" style="${taskColorStyle(task.hue,getTaskColor(task))}" draggable="true" data-task-id="${esc(task.id)}" data-task-date="${task.date}" aria-label="${esc(task.title)}, ${status}${past?', nepaveikts':''}">
     <div class="task-leading"><button class="task-state state-${task.status}" data-action="status" data-id="${esc(task.id)}" aria-haspopup="menu" aria-expanded="false" aria-label="Mainīt statusu: ${esc(task.title)}" title="${status} — mainīt statusu">${task.status==='complete'?icon('check'):task.status==='canceled'?icon('close'):task.status==='progress'?'<span></span>':''}</button></div>
     <button class="task-content" data-action="edit" data-id="${esc(task.id)}"><span class="task-title">${esc(task.title)}</span>${!compact?`<span class="task-description">${esc(task.description)}</span>`:''}<span class="task-meta">${task.priority==='high'?'<span class="priority-high">Augsta</span>':task.priority==='low'?'<span class="priority-low">Zema</span>':'<span>Parasta</span>'}<span class="task-status">${past?'Nepaveikts':status}</span>${task.comments.length?`<span class="comment-count">Ieraksti: ${task.comments.length}</span>`:''}</span></button>
     <div class="task-order">${button('order-up','Pārvietot augstāk','up',`data-id="${esc(task.id)}"`)}${button('order-down','Pārvietot zemāk','down',`data-id="${esc(task.id)}"`)}<span class="drag-handle" title="Vilkt, lai pārvietotu">${icon('grip')}</span></div>
@@ -130,9 +130,10 @@ function openEditor(id=null,key=selected) {
   editing=id;editorCommentsChanged=false;const task=id?tasks.find(task=>task.id===id):null;
   if(id&&!task)return;
   draftHue=task?.hue??generateDayTaskHue(tasks,key);draftColorChosen=false;
+  draftColor=task?getTaskColor(task):classicTaskColors(draftHue).background;
   const dialog=document.querySelector('#task-dialog');
   dialog.innerHTML=`<form id="task-form">
-    <header class="dialog-header"><h2 id="dialog-heading">${task?'Rediģēt uzdevumu':'Jauns uzdevums'}</h2><div class="dialog-tools"><button class="task-color-button" data-action="color" type="button" style="${taskColorStyle(draftHue)}" title="Ģenerēt citu uzdevuma krāsu" aria-label="Ģenerēt citu uzdevuma krāsu"><span aria-hidden="true">↻</span></button>${button('close-dialog','Aizvērt uzdevumu','close')}</div></header>
+    <header class="dialog-header"><h2 id="dialog-heading">${task?'Rediģēt uzdevumu':'Jauns uzdevums'}</h2><div class="dialog-tools"><button class="task-color-button" data-action="color" type="button" style="${taskColorStyle(draftHue,draftColor)}" title="Ģenerēt citu uzdevuma krāsu" aria-label="Ģenerēt citu uzdevuma krāsu"><span aria-hidden="true">↻</span></button>${button('close-dialog','Aizvērt uzdevumu','close')}</div></header>
     <div class="field"><label for="task-title">Nosaukums</label><input id="task-title" name="title" placeholder="Uzdevuma nosaukums" value="${esc(task?.title||'')}" maxlength="120" required autocomplete="off"></div>
     <div class="field"><label for="task-description">Apraksts <span>nav obligāti</span></label><textarea id="task-description" name="description" placeholder="Papildu informācija" rows="5" maxlength="3000">${esc(task?.description||'')}</textarea></div>
     <div class="task-options"><div class="field"><label for="task-date">Datums</label><input id="task-date" name="date" type="date" lang="lv" value="${task?.date||key}" min="1900-01-01" max="9999-12-31" required></div><div class="field"><label for="task-status">Statuss</label><select id="task-status" name="status">${Object.entries(STATUSES).map(([value,label])=>`<option value="${value}" ${(task?.status||'new')===value?'selected':''}>${label}</option>`).join('')}</select></div><div class="field"><label for="task-priority">Prioritāte</label><select id="task-priority" name="priority">${Object.entries(PRIORITIES).map(([value,label])=>`<option value="${value}" ${(task?.priority||'normal')===value?'selected':''}>${label}</option>`).join('')}</select></div></div>
@@ -181,8 +182,8 @@ root.addEventListener('click',event=>{
   }
   if(action==='close-dialog')return closeEditor();
   if(action==='color'){
-    draftHue=generateDayTaskHue(tasks,document.querySelector('#task-date').value,{excludeTaskId:editing,previousHue:draftHue});
-    draftColorChosen=true;element.style.cssText=taskColorStyle(draftHue);return;
+    draftHue=generateDayTaskHue(tasks,document.querySelector('#task-date').value,{excludeTaskId:editing,previousColor:draftColor});
+    draftColor=classicTaskColors(draftHue).background;draftColorChosen=true;element.style.cssText=taskColorStyle(draftHue,draftColor);return;
   }
   if(action==='post-comment'){
     const input=document.querySelector('#task-comment');if(!input.value.trim())return input.focus();
@@ -226,12 +227,12 @@ root.addEventListener('input',event=>{if(event.target.setCustomValidity)event.ta
 root.addEventListener('change',event=>{
   if(event.target.id==='task-date'&&!editing&&!draftColorChosen&&event.target.validity.valid){
     draftHue=generateDayTaskHue(tasks,event.target.value);
-    document.querySelector('.task-color-button').style.cssText=taskColorStyle(draftHue);
+    draftColor=classicTaskColors(draftHue).background;document.querySelector('.task-color-button').style.cssText=taskColorStyle(draftHue,draftColor);
   }
 });
 root.addEventListener('submit',event=>{
   if(event.target.id!=='task-form')return;event.preventDefault();
-  const data=new FormData(event.target),fields={title:data.get('title').trim(),description:data.get('description').trim(),date:data.get('date'),priority:data.get('priority'),status:data.get('status'),hue:draftHue};
+  const data=new FormData(event.target),fields={title:data.get('title').trim(),description:data.get('description').trim(),date:data.get('date'),priority:data.get('priority'),status:data.get('status'),hue:draftHue,color:draftColor};
   try{
     if(editing)updateTask(tasks,editing,fields,data.get('comment'));
     else createTask(tasks,fields,data.get('comment'));
@@ -263,4 +264,4 @@ window.addEventListener('resize',()=>closeQuickStatus());
 root.addEventListener('toggle',event=>{if(event.target.id==='quick-status'&&event.newState==='closed')quickTrigger?.setAttribute('aria-expanded','false');},true);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)return;const newToday=dateKey(new Date());if(newToday!==today){today=newToday;if(!document.querySelector('#task-dialog')?.open&&!dragId){closeQuickStatus();render();}}});
 render();
-cloud=startCloudPlanner({root,getTasks:()=>tasks,isBusy:()=>!!editing||!!dragId,setTasks:value=>{tasks=value;if(!document.querySelector('#task-dialog')?.open){closeQuickStatus();render();}},notify:toast});
+cloud=startCloudPlanner({root,getTasks:()=>tasks,isBusy:()=>!!editing||!!dragId,setTasks:value=>{tasks=withStableTaskColors(value);if(!document.querySelector('#task-dialog')?.open){closeQuickStatus();render();}},notify:toast});

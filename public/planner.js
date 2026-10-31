@@ -51,6 +51,7 @@ export function seedTasks(today) {
   return tasks;
 }
 export function validateTask(task) {
+  if(task&&Object.hasOwn(task,'color')&&(typeof task.color!=='string'||!/^#[a-f0-9]{6}$/i.test(task.color)))return false;
   return task && typeof task.id==='string' && typeof task.title==='string' && typeof task.description==='string' && /^\d{4}-\d{2}-\d{2}$/.test(task.date) && dateKey(fromKey(task.date))===task.date && Object.hasOwn(STATUSES,task.status) && Object.hasOwn(PRIORITIES,task.priority) && Number.isFinite(task.hue) && Number.isFinite(task.order) && Array.isArray(task.comments) && task.comments.every(c=>c && Object.hasOwn(STATUSES,c.status) && typeof c.comment==='string' && typeof c.at==='string' && (!c.kind||['status','priority','comment'].includes(c.kind)));
 }
 export function loadTasks(storage,today) {
@@ -94,6 +95,8 @@ export function updateTask(tasks,id,fields,comment='',now=new Date().toISOString
   const task=tasks.find(t=>t.id===id);
   if(!task) throw new Error('Task not found.');
   const next=Object.fromEntries(['title','description','date','status','priority','hue'].map(key=>[key,fields[key]??task[key]]));
+  const color=fields.color??task.color;
+  if(color!==undefined){if(typeof color!=='string'||!/^#[a-f0-9]{6}$/i.test(color))throw new Error('Choose a valid color.');next.color=color.toLowerCase();}
   if(!next.title?.trim())throw new Error('Give your task a title.');
   if(!/^\d{4}-\d{2}-\d{2}$/.test(next.date)||dateKey(fromKey(next.date))!==next.date)throw new Error('Choose a valid day.');
   if(!Object.hasOwn(STATUSES,next.status)||!Object.hasOwn(PRIORITIES,next.priority))throw new Error('Choose a valid status and priority.');

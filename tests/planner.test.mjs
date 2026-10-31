@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {classicTaskColors,generateDayTaskHue,TASK_COLOR_HUES} from '../public/retro/1990s-colors.js';
+import {classicTaskColors,generateDayTaskHue,TASK_COLOR_HUES,TASK_PALETTE,getTaskColor,withStableTaskColors} from '../public/retro/1990s-colors.js';
 import {dateKey,fromKey,addDays,weekStart,monthDays,shiftPeriod,sortTasks,moveTask,updateTask,isMissed,seedTasks,validateTask,loadTasks,randomHue,createTask,addTaskComment} from '../public/planner.js';
 const make=(id,date='2026-10-31',order=0,status='new')=>({id,date,order,status,title:id,description:'A task',priority:'normal',hue:140,comments:[]});
 test('calendar dates cross month, leap-year, and week boundaries without UTC offsets',()=>{
@@ -116,13 +116,13 @@ test('explicit color changes update only the chosen task and survive reload',()=
   }
 });
 test('automatic retro colors prefer an unused visible color on the chosen day',()=>{
-  const tasks=TASK_COLOR_HUES.slice(0,-1).map((hue,i)=>({...make(String(i)),hue:hue+.01,status:i%2?'complete':'new'}));
+  const tasks=TASK_COLOR_HUES.slice(0,-1).map((hue,i)=>({...make(String(i)),hue:hue+.01,color:TASK_PALETTE[i],status:i%2?'complete':'new'}));
   const snapshot=structuredClone(tasks),hue=generateDayTaskHue(tasks,'2026-10-31');
   assert.equal(classicTaskColors(hue).background,classicTaskColors(TASK_COLOR_HUES.at(-1)).background);
   assert.deepEqual(tasks,snapshot,'Choosing a color never recolors existing tasks, including completed ones');
 });
 test('when all retro colors are used, color generation falls back to random palette choices',t=>{
-  const tasks=TASK_COLOR_HUES.map((hue,i)=>({...make(String(i)),hue}));
+  const tasks=TASK_COLOR_HUES.map((hue,i)=>({...make(String(i)),hue,color:TASK_PALETTE[i]}));
   t.mock.method(Math,'random',()=>0);assert.equal(generateDayTaskHue(tasks,'2026-10-31'),TASK_COLOR_HUES[0]);
   t.mock.method(Math,'random',()=>0.999);assert.equal(generateDayTaskHue(tasks,'2026-10-31'),TASK_COLOR_HUES.at(-1));
 });
@@ -133,23 +133,41 @@ test('tasks on another day do not reserve colors',t=>{
 });
 test('regeneration avoids the previous visible color and prefers unused colors before random fallback',t=>{
   t.mock.method(Math,'random',()=>0);
-  const tasks=[{...make('edit'),hue:TASK_COLOR_HUES[0]},{...make('other'),hue:TASK_COLOR_HUES[1]}];
+  const tasks=[{...make('edit'),hue:TASK_COLOR_HUES[0],color:TASK_PALETTE[0]},{...make('other'),hue:TASK_COLOR_HUES[1],color:TASK_PALETTE[1]}];
   assert.equal(generateDayTaskHue(tasks,'2026-10-31',{excludeTaskId:'edit',previousHue:TASK_COLOR_HUES[0]}),TASK_COLOR_HUES[2]);
-  const full=TASK_COLOR_HUES.map((hue,i)=>({...make(String(i)),hue}));
+  const full=TASK_COLOR_HUES.map((hue,i)=>({...make(String(i)),hue,color:TASK_PALETTE[i]}));
   const next=generateDayTaskHue(full,'2026-10-31',{previousHue:TASK_COLOR_HUES[0]});
   assert.notEqual(classicTaskColors(next).background,classicTaskColors(TASK_COLOR_HUES[0]).background);
 });
 test('8-bit task colors are distinct RGB332 shades visible on white with readable button symbols',()=>{
   const redGreen=new Set(Array.from({length:8},(_,i)=>Math.round(i*255/7))),blue=new Set([0,85,170,255]),seen=new Set();
   const linear=value=>value<=.04045?value/12.92:((value+.055)/1.055)**2.4;
-  assert.ok(TASK_COLOR_HUES.length>8&&TASK_COLOR_HUES.length<=256);
+  assert.equal(TASK_COLOR_HUES.length,32);assert.equal(new Set(TASK_PALETTE).size,32);
   for(const hue of TASK_COLOR_HUES){
     const color=classicTaskColors(hue),[r,g,b]=color.background.slice(1).match(/../g).map(value=>parseInt(value,16));
     assert.ok(redGreen.has(r)&&redGreen.has(g)&&blue.has(b));assert.equal(seen.has(color.background),false);seen.add(color.background);
     const luminance=.2126*linear(r/255)+.7152*linear(g/255)+.0722*linear(b/255);
-    assert.ok(1.05/(luminance+.05)>=3,'Task band contrasts with white');
+    assert.ok(luminance>=.16,'Exclude the previous dark shades');
+    assert.ok(1.05/(luminance+.05)>=1.4,'Keep brighter task bands visible on white');
     const inkContrast=color.ink==='#000'?(luminance+.05)/.05:1.05/(luminance+.05);
     assert.ok(inkContrast>=4.5,'Regenerate symbol contrasts with its color button');
     assert.equal(color.completed,`hsl(from ${color.background} h s calc(l + (100 - l) * .7))`);
   }
+});
+test('legacy colors are restored and frozen independently of the new palette',()=>{
+  const legacy=[{...make('original'),hue:140},{...make('expanded'),hue:360/117*.5}];
+  const snapshot=structuredClone(legacy),pinned=withStableTaskColors(legacy);
+  assert.deepEqual(pinned.map(task=>task.color),['#66ff66','#920000']);
+  assert.deepEqual(legacy,snapshot,'Pinning legacy colors does not mutate the downloaded document');
+  assert.deepEqual(withStableTaskColors(pinned),pinned,'Migration is idempotent');
+  for(const hue of TASK_COLOR_HUES)assert.equal(classicTaskColors(hue,pinned[0].color).background,'#66ff66','Saved color overrides palette slot');
+});
+test('explicit colors survive moves, edits, reloads and validation',()=>{
+  const tasks=[{...make('A'),color:'#ffcc00'},make('B','2026-11-01')];
+  moveTask(tasks,'A','2026-11-01');updateTask(tasks,'A',{title:'Updated',status:'complete',hue:0});
+  assert.equal(getTaskColor(tasks[0]),'#ffcc00');
+  const loaded=loadTasks({getItem:()=>JSON.stringify(tasks)},'2026-10-31');assert.equal(getTaskColor(loaded.tasks[0]),'#ffcc00');
+  const snapshot=structuredClone(tasks);
+  assert.throws(()=>updateTask(tasks,'A',{color:'red;display:none'}),/color/);assert.deepEqual(tasks,snapshot);
+  assert.equal(validateTask({...tasks[0],color:'#bad'}),false);
 });
