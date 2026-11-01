@@ -24,10 +24,10 @@ html[data-design="labs"] body { background: var(--bg); color: var(--ink); font: 
 [data-design="labs"] a, [data-design="labs"] button { -webkit-tap-highlight-color: transparent; }
 [data-design="labs"] :focus-visible { outline-color: #ff6600; }
 [data-design="labs"] .app-shell { --sidebar-width: 188px; --calendar-bottom-space: 20px; gap: 28px; }
-[data-design="labs"] .sidebar { padding: 36px 20px 20px 0; }
-[data-design="labs"] .sidebar::before { font: 600 11px/1.4 Verdana, Geneva, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
-[data-design="labs"] .planner-main { padding-top: 36px; }
-[data-design="labs"] .planner-header { padding-bottom: 20px; margin-bottom: 20px; border-bottom: 1px solid var(--line); gap: 20px; }
+[data-design="labs"] .sidebar { padding: 24px 20px 20px 0; }
+[data-design="labs"] .sidebar::before { font: 600 11px/1.4 Verdana, Geneva, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+[data-design="labs"] .planner-main { padding-top: 24px; }
+[data-design="labs"] .planner-header { padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--line); gap: 20px; }
 [data-design="labs"] .planner-header h1 { display: flex; align-items: center; gap: 12px; color: var(--ink); font: 600 22px/1.3 Verdana, Geneva, sans-serif; letter-spacing: -.7px; }
 [data-design="labs"] .planner-header h1::before { content: ''; display: block; width: 3px; height: 22px; background: var(--accent); flex-shrink: 0; }
 
@@ -48,7 +48,7 @@ html[data-design="labs"] #account .account-actions button:hover, html[data-desig
 [data-design="labs"] .quick-status-heading { font: 10px/1.5 Verdana, Geneva, sans-serif; padding-bottom: 10px; }
 [data-design="labs"] .quick-status-heading > span { font-size: 12px; }
 
-[data-design="labs"] .planner-toolbar { gap: 16px; border-bottom: 1px solid var(--line); margin-bottom: 20px; padding-bottom: 20px; }
+[data-design="labs"] .planner-toolbar { gap: 16px; border-bottom: 1px solid var(--line); margin-bottom: 12px; padding-bottom: 12px; }
 [data-design="labs"] .date-controls { gap: 10px; }
 [data-design="labs"] .date-controls h2 { font: 500 13px/1.45 Verdana, Geneva, sans-serif; letter-spacing: -.2px; width: 22ch; flex-basis: 22ch; }
 [data-design="labs"] .date-arrows { gap: 4px; }
@@ -64,19 +64,19 @@ html[data-design="labs"] #account .account-actions button:hover, html[data-desig
 
 /* The calendar remains on the left, with quiet date and holiday treatments. */
 [data-design="labs"] .sidebar .mini-calendar { background: transparent; }
-[data-design="labs"] .sidebar .mini-heading { background: transparent; border: 0; padding: 0; margin-bottom: 14px; justify-content: space-between; gap: 10px; }
+[data-design="labs"] .sidebar .mini-heading { background: transparent; border: 0; padding: 0; margin-bottom: 10px; justify-content: space-between; gap: 10px; }
 [data-design="labs"] .sidebar .mini-heading > span { width: auto; text-align: left; font: 500 12px/1.5 Verdana, Geneva, sans-serif; }
 [data-design="labs"] .sidebar .mini-heading > div { width: auto; gap: 4px; }
 [data-design="labs"] .sidebar .mini-heading .icon-btn { width: 23px; height: 24px; }
-[data-design="labs"] .mini-grid { gap: 4px 0; }
-[data-design="labs"] .mini-weekday, [data-design="labs"] .sidebar .mini-weekday { color: var(--subtle); font: 10px/1.4 Verdana, Geneva, sans-serif; padding-bottom: 8px; }
-[data-design="labs"] .sidebar .mini-date, [data-design="labs"] .year-mini .mini-date { min-height: 27px; color: var(--muted); font: 11px/1.3 Verdana, Geneva, sans-serif; text-decoration: none; }
+[data-design="labs"] .mini-grid { gap: 2px 0; }
+[data-design="labs"] .mini-weekday, [data-design="labs"] .sidebar .mini-weekday { color: var(--subtle); font: 10px/1.4 Verdana, Geneva, sans-serif; padding-bottom: 4px; }
+[data-design="labs"] .sidebar .mini-date, [data-design="labs"] .year-mini .mini-date { min-height: 24px; color: var(--muted); font: 11px/1.3 Verdana, Geneva, sans-serif; text-decoration: none; }
 [data-design="labs"] .mini-date:hover { background: var(--surface-alt); color: var(--ink); }
 [data-design="labs"] .sidebar .mini-date.is-selected, [data-design="labs"] .year-mini .mini-date.is-selected { background: var(--accent-bg); color: var(--ink); border: 1px solid var(--strong-line); }
 [data-design="labs"] .sidebar .mini-date.is-today, [data-design="labs"] .year-mini .mini-date.is-today { color: var(--accent); border: 1px solid var(--accent); }
 [data-design="labs"] .mini-date.is-nonworking:not(.is-selected):not(.is-today) { background: #241e1a; color: #d5a28c; }
 [data-design="labs"] .sidebar .mini-weekday:nth-child(n+6), [data-design="labs"] .month-weekdays > span:nth-last-child(-n+2) { color: #d5a28c; }
-[data-design="labs"] .sidebar-bottom { margin-top: 24px; padding-top: 16px; }
+[data-design="labs"] .sidebar-bottom { margin-top: 16px; padding-top: 12px; }
 [data-design="labs"] .progress-label { color: var(--muted); font: 10px/1.5 Verdana, Geneva, sans-serif; }
 [data-design="labs"] .progress-label b, [data-design="labs"] .progress-label b span { color: var(--muted); }
 [data-design="labs"] .progress-line { height: 2px; background: var(--line); }
@@ -89,8 +89,8 @@ html[data-design="labs"] #account .account-actions button:hover, html[data-desig
 /* Task colors stay in their bands; no data or color migration is needed. */
 [data-design="labs"] .week-grid { border-color: var(--line); background: transparent; }
 [data-design="labs"] .day-column { padding: 0 8px 8px; background: transparent; }
-[data-design="labs"] .column-heading { min-height: 64px; padding: 13px 10px; margin: 0 -8px 10px; background: var(--surface); border-bottom-color: var(--line); }
-[data-design="labs"] .column-heading > button { gap: 5px; }
+[data-design="labs"] .column-heading { min-height: 54px; padding: 8px 10px; margin: 0 -8px 6px; background: var(--surface); border-bottom-color: var(--line); }
+[data-design="labs"] .column-heading > button { gap: 3px; }
 [data-design="labs"] .column-heading > button span { color: var(--muted); font: 10px/1.2 Verdana, Geneva, sans-serif; }
 [data-design="labs"] .column-heading b { font: 500 21px/1.2 Verdana, Geneva, sans-serif; letter-spacing: -.8px; }
 [data-design="labs"] .column-count { color: var(--subtle); font: 10px/1.4 Verdana, Geneva, sans-serif; }
@@ -99,18 +99,19 @@ html[data-design="labs"] #account .account-actions button:hover, html[data-desig
 [data-design="labs"] .today-marker { color: var(--accent); font: 8px/1.5 Verdana, Geneva, sans-serif; letter-spacing: .02em; }
 [data-design="labs"] .day-column.is-nonworking:not(.is-today) .column-heading { background: #211d18; }
 [data-design="labs"] .day-column.is-nonworking .column-heading button { color: #d5a28c; }
-[data-design="labs"] .task-card { padding: 11px 9px; margin-bottom: 8px; gap: 8px; border: 0 !important; border-left: 3px solid var(--classic-color) !important; border-bottom: 1px solid var(--line) !important; background: var(--surface); color: var(--ink); }
+[data-design="labs"] .task-card { padding: 7px 9px; margin-bottom: 6px; gap: 8px; border: 0 !important; border-left: 3px solid var(--classic-color) !important; border-bottom: 1px solid var(--line) !important; background: var(--surface); color: var(--ink); }
 [data-design="labs"] .task-card:hover { background: var(--surface-alt); }
 [data-design="labs"] .task-card .task-title, [data-design="labs"] .compact .task-title { color: var(--ink); font: 500 12px/1.5 Verdana, Geneva, sans-serif; text-decoration: none; }
 [data-design="labs"] .task-description { color: var(--muted); font: 12px/1.6 Verdana, Geneva, sans-serif; opacity: 1; }
 [data-design="labs"] .task-meta, [data-design="labs"] .compact .task-meta, [data-design="labs"] .compact .task-status { color: var(--muted); font: 9px/1.5 Verdana, Geneva, sans-serif; gap: 4px 8px; }
+[data-design="labs"] .task-meta, [data-design="labs"] .compact .task-meta { margin-top: 4px; }
 [data-design="labs"] .task-card.is-complete { border-left-color: var(--classic-complete) !important; color: var(--muted); }
 [data-design="labs"] .task-card.is-complete .task-title { color: var(--muted); font-weight: 400; text-decoration: line-through; }
 [data-design="labs"] .task-card.is-missed .task-title { color: var(--muted); }
 [data-design="labs"] .task-card.is-canceled { border-left-color: var(--strong-line) !important; color: var(--muted); }
 [data-design="labs"] .task-state { color: var(--muted); opacity: 1; }
 [data-design="labs"] .task-state.state-progress { color: var(--accent); }
-[data-design="labs"] .task-divider { border-top-color: var(--line); margin: 12px 0; }
+[data-design="labs"] .task-divider, [data-design="labs"] .day-column .task-divider { border-top-color: var(--line); margin: 8px 0; }
 [data-design="labs"] .task-divider span, [data-design="labs"] .stack-caption { color: var(--subtle); font: 9px/1.5 Verdana, Geneva, sans-serif; }
 [data-design="labs"] .column-add { min-height: 34px; gap: 6px; margin: 0 -8px; background: transparent; border: 0; border-top: 1px solid var(--line); color: var(--muted); font: 10px/1.4 Verdana, Geneva, sans-serif; text-decoration: none; }
 [data-design="labs"] .column-add svg { display: inline-block; width: 12px; height: 12px; }
@@ -126,13 +127,15 @@ html[data-design="labs"] #account .account-actions button:hover, html[data-desig
 [data-design="labs"] .month-cell .month-day-number { color: var(--ink); font: 12px/1.4 Verdana, Geneva, sans-serif; text-decoration: none; }
 [data-design="labs"] .month-cell.is-nonworking .month-day-number { color: #d5a28c; }
 [data-design="labs"] .month-cell.is-today > header .month-day-number { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent); }
-[data-design="labs"] .month-tasks .task-card { padding: 7px 5px; }
+[data-design="labs"] .month-tasks .task-card { padding: 5px; }
 [data-design="labs"] .month-tasks .task-title { font-size: 10px; }
-[data-design="labs"] .strip-day { background: var(--surface); color: var(--muted); }
+[data-design="labs"] .week-strip { margin-bottom: 18px; }
+[data-design="labs"] .strip-day { background: var(--surface); color: var(--muted); padding-block: 7px; }
 [data-design="labs"] .strip-day b { font: 500 18px/1.4 Verdana, Geneva, sans-serif; }
 [data-design="labs"] .strip-day > span, [data-design="labs"] .strip-day small { font: 10px/1.4 Verdana, Geneva, sans-serif; }
 [data-design="labs"] .strip-day.is-selected, [data-design="labs"] .strip-day.is-today { background: var(--surface-alt); color: var(--accent); }
 [data-design="labs"] .strip-day.is-nonworking:not(.is-selected):not(.is-today) { background: #211d18; color: #d5a28c; }
+[data-design="labs"] .daily-heading { margin-bottom: 16px; }
 [data-design="labs"] .daily-heading h3, [data-design="labs"] .year-focus h3 { font: 500 20px/1.4 Verdana, Geneva, sans-serif; letter-spacing: -.4px; }
 [data-design="labs"] .daily-heading > span, [data-design="labs"] .year-help { color: var(--muted); font: 11px/1.6 Verdana, Geneva, sans-serif; }
 [data-design="labs"] .daily-list.is-nonworking .daily-heading { color: #d5a28c; }
@@ -172,20 +175,20 @@ html[data-design="labs"] #account .account-actions button:hover, html[data-desig
 }
 @media(max-width:760px) {
   [data-design="labs"] .app-shell { --sidebar-width: 138px; --calendar-bottom-space: 14px; gap: 16px; }
-  [data-design="labs"] .sidebar { padding: 24px 12px 14px 0; }
-  [data-design="labs"] .planner-main { padding-top: 24px; }
-  [data-design="labs"] .planner-header { padding-bottom: 16px; margin-bottom: 16px; gap: 16px; }
+  [data-design="labs"] .sidebar { padding: 18px 12px 14px 0; }
+  [data-design="labs"] .planner-main { padding-top: 18px; }
+  [data-design="labs"] .planner-header { padding-bottom: 10px; margin-bottom: 10px; gap: 12px; }
   [data-design="labs"] .planner-header h1 { font-size: 20px; }
   [data-design="labs"] .header-actions { gap: 8px; }
   html[data-design="labs"] #account .account-menu { width: 100%; }
   html[data-design="labs"] #account summary { width: 100%; max-width: 135px; }
-  [data-design="labs"] .planner-toolbar { gap: 12px; padding-bottom: 16px; margin-bottom: 16px; }
+  [data-design="labs"] .planner-toolbar { gap: 10px; padding-bottom: 10px; margin-bottom: 10px; }
   [data-design="labs"] .date-controls h2 { width: 22ch; flex-basis: 22ch; font-size: 12px; }
   [data-design="labs"] .view-switch { width: 100%; display: flex; }
   [data-design="labs"] .view-switch button { flex: 1; min-width: 0; padding-inline: 8px; }
   [data-design="labs"] .sidebar .mini-heading > span { width: 100%; font-size: 11px; }
   [data-design="labs"] .sidebar .mini-heading > div { width: 100%; justify-content: flex-start; }
-  [data-design="labs"] .sidebar .mini-date { font-size: 10px; min-height: 25px; }
+  [data-design="labs"] .sidebar .mini-date { font-size: 10px; min-height: 24px; }
   [data-design="labs"] dialog { padding: 16px; }
 }
 @media(max-width:450px) {
