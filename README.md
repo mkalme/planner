@@ -16,6 +16,8 @@ The app fits the viewport height without an outer page scrollbar. Its layout is 
 
 ## Local development
 
+A second presentation is available at `/planner/modern.html`, inspired by the [YC Labs games page](https://labs.ycombinator.com/projects/games/index.html). It uses the reference's charcoal `#111210`, off-white `#f3f3ec`, muted sage `#a5aa9a` and warm accent, with Verdana typography, thin borders and square controls. The classic design remains at `/planner/`. Small sidebar links switch between them. Both pages share the same application module, Google account session, Drive document and stored task colors; the variant adds no data migration or additional Google permissions.
+
 Use Node 22 or newer:
 
 ```sh
@@ -92,6 +94,8 @@ npx playwright install chromium
 npm run test:browser
 npm run build
 ```
+
+Run the same browser checks for the second design with `PLANNER_VARIANT=modern npm run test:browser` (PowerShell: `$env:PLANNER_VARIANT='modern'; npm run test:browser`). The modern run also verifies that switching between the two pages preserves the Drive document, colors and signed-in tab session.
 
 Browser tests start their own local server if needed and test the `/planner/` URL. They mock Google/Drive and cover authorization denial and expiry, automatic session restoration, sign-out, initialization, status/history, metadata-only Drive version drift, actual content conflicts, recovery fingerprints across reload, serialized refreshes, import/export, offline write protection, account isolation, matching account/status menus, visible drag outlines, holidays across calendar views, and responsive layouts. Unit tests also cover invalid sessions, expiration, blocked browser storage, content fingerprints, upload acknowledgements and Latvian holiday rules. Test screenshots go to ignored `artifacts/`.
 

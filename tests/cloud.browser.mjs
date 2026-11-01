@@ -3,6 +3,7 @@ import {spawn} from 'node:child_process';
 import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
 const require=createRequire(import.meta.url),{chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
+const modern=process.env.PLANNER_VARIANT==='modern',entry=modern?'/planner/modern.html':'/planner/',artifact=name=>`artifacts/${modern?'modern-':''}${name}`;
 let server;
 try{await fetch('http://127.0.0.1:4173/planner/');}catch{server=spawn(process.execPath,['server.mjs'],{stdio:'ignore'});}
 for(let i=0;i<50;i++){try{const r=await fetch('http://127.0.0.1:4173/planner/');if(r.ok)break;}catch{}await new Promise(r=>setTimeout(r,100));}
@@ -62,7 +63,12 @@ try{
     assert.equal(metrics.login.height,metrics.create.height,'Account and create controls have equal heights');
     assert.ok(metrics.create.right<=metrics.w&&metrics.login.left>=metrics.header.left);
   }
-  await page.goto('http://127.0.0.1:4173/planner/');await page.locator('#app[data-readonly]').waitFor();
+  await page.goto(`http://127.0.0.1:4173${entry}`);await page.locator('#app[data-readonly]').waitFor();
+  if(modern){
+    assert.equal(await page.locator('html').getAttribute('data-theme'),'dark');
+    assert.equal(await page.locator('body').evaluate(n=>getComputedStyle(n).backgroundColor),'rgb(17, 18, 16)');
+    assert.match(await page.locator('body').evaluate(n=>getComputedStyle(n).fontFamily),/Verdana/);
+  }
   for(const viewport of [{width:1440,height:900},{width:390,height:844}]){await page.setViewportSize(viewport);await frame();}
   await page.setViewportSize({width:1440,height:1000});
   assert.equal(await page.locator('[data-task-id]').count(),0);
@@ -72,6 +78,7 @@ try{
   for(const view of ['day','week','month','year']){await page.locator(`[data-view="${view}"]`).click();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);}
   await page.locator('[data-view=week]').click();
   await page.locator('[data-action=new]').first().click();await page.locator('#task-title').fill('Pārbaudīt saglabāšanu');
+  if(modern)await page.screenshot({path:artifact('editor.png'),fullPage:true});
   const originalColor=await page.locator('.task-color-button').evaluate(n=>getComputedStyle(n).backgroundColor);
   await page.locator('.task-color-button').click();assert.notEqual(await page.locator('.task-color-button').evaluate(n=>getComputedStyle(n).backgroundColor),originalColor);
   const chosenHue=await page.locator('.task-color-button').evaluate(n=>Number(n.style.getPropertyValue('--task-hue')));
@@ -81,6 +88,15 @@ try{
   await page.locator('#app[data-readonly]').waitFor();await ready();assert.equal(doc.tasks.length,1);assert.match(doc.tasks[0].comments[0].comment,/Statuss/);
   assert.equal(doc.tasks[0].hue,chosenHue,'The generated color saves with the task');
   assert.equal(doc.tasks[0].color,chosenColor,'Persist the actual color rather than relying on palette position');
+  if(modern){
+    const savedDocument=JSON.stringify(doc);
+    await page.goto('http://127.0.0.1:4173/planner/');await ready();
+    assert.equal(await page.locator('html').getAttribute('data-theme'),'light');
+    assert.equal(JSON.stringify(doc),savedDocument,'Opening the classic design does not rewrite planner data');
+    await page.goto(`http://127.0.0.1:4173${entry}`);await ready();
+    assert.equal(JSON.stringify(doc),savedDocument,'Both designs use the same Drive document and saved colors');
+    assert.equal(await page.evaluate(()=>window.oauthRequests),0,'Switching designs restores the same tab session');
+  }
   const id=doc.tasks[0].id,selector=`[data-task-id="${id}"]`;
   const savedBand=await page.locator(selector).evaluate(n=>getComputedStyle(n).borderLeftColor);
   await page.locator('[data-action=new]').first().click();
@@ -93,7 +109,7 @@ try{
   await page.locator('#quick-status [data-status=complete]').click();await ready();assert.equal(doc.tasks[0].status,'complete');
   await page.locator('#account summary').click();
   assert.deepEqual(await page.getByRole('button',{name:'Atjaunot',exact:true}).evaluate(n=>{const s=getComputedStyle(n);return {font:s.font,padding:s.padding,border:s.borderWidth};}),statusMenuStyle,'Account actions use the quick status menu row style');
-  await page.screenshot({path:'artifacts/account-menu.png',fullPage:true});
+  await page.screenshot({path:artifact('account-menu.png'),fullPage:true});
   await page.locator('#account summary').press('Escape');
   // A colored band must not cover the drag outline, and dragging must not move the source slot.
   const sourceRect=await page.locator(selector).boundingBox();
@@ -102,7 +118,7 @@ try{
   await page.locator('.day-column:not(.is-today) .completed-stack').first().evaluate(n=>{const r=n.getBoundingClientRect();n.dispatchEvent(new DragEvent('dragover',{bubbles:true,cancelable:true,dataTransfer:window.testDragTransfer,clientX:r.left+10,clientY:r.top+5}));});
   const dragOutline=await page.locator('.drag-placeholder').evaluate(n=>{const s=getComputedStyle(n);return {style:s.outlineStyle,width:s.outlineWidth};});
   assert.deepEqual(dragOutline,{style:'dashed',width:'2px'});assert.deepEqual(await page.locator(selector).boundingBox(),sourceRect);
-  await page.screenshot({path:'artifacts/drag-preview.png',fullPage:true});
+  await page.screenshot({path:artifact('drag-preview.png'),fullPage:true});
   await page.locator(selector).evaluate(n=>n.dispatchEvent(new DragEvent('dragend',{bubbles:true,dataTransfer:window.testDragTransfer})));
   const originalExpiry=await page.evaluate(()=>JSON.parse(sessionStorage.getItem('mkalme-planner:google-session')).expiresAt);
   await page.reload();await ready();assert.equal(await page.locator(`${selector}.is-complete`).count(),1);
@@ -157,7 +173,7 @@ try{
     assert.ok(Math.abs(actions[0].y+actions[0].h/2-actions[1].y-actions[1].h/2)<2,'Account controls align with create task button');
     await page.locator('#account summary').click();assert.equal(await page.getByRole('button',{name:'Lejupielādēt',exact:true}).isVisible(),true);
     await page.locator('#account summary').press('Escape');assert.equal(await page.locator('#account details').getAttribute('open'),null);
-    if(viewport.width===1440)await page.screenshot({path:'artifacts/compact-header-desktop.png',fullPage:true});
+    if(viewport.width===1440)await page.screenshot({path:artifact('compact-header-desktop.png'),fullPage:true});
   }
   const today=await page.locator('.day-column.is-today').getAttribute('data-drop-date');
   doc.tasks=Array.from({length:35},(_,i)=>({id:`dense-${i}`,title:`Garāks uzdevums ${i}`,description:'',date:today,status:'new',priority:'normal',hue:i*10,order:i,comments:[]}));version++;
@@ -173,7 +189,7 @@ try{
   assert.equal(await page.locator('[data-task-id="dense-34"]').evaluate(n=>{const a=n.getBoundingClientRect(),b=n.closest('.column-tasks').getBoundingClientRect();return a.bottom<=b.bottom+1}),true,'Last task remains reachable');
   await page.setViewportSize({width:390,height:844});
   for(const view of ['day','week','month','year']){await page.locator(`[data-view="${view}"]`).click();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);}
-  await page.screenshot({path:'artifacts/mobile.png',fullPage:true});
+  await page.screenshot({path:artifact('mobile.png'),fullPage:true});
   // A weekday public holiday is marked in the calendar, not merely weekend columns.
   await page.setViewportSize({width:1440,height:900});await page.locator('[data-view=year]').click();
   const year=Number(await page.locator('.date-controls h2').innerText()),holidayKey=`${year}-11-18`;
@@ -193,5 +209,5 @@ try{
   await connect();await accountAction('Iziet');await page.reload();await page.locator('#account[data-state=disconnected]').waitFor();
   assert.equal(await page.locator('[data-task-id]').count(),0);assert.equal(await page.evaluate(()=>sessionStorage.getItem('mkalme-planner:google-session')),null);
   assert.deepEqual(errors,[]);
-  console.log('Pages subpath, Google denial/expiry, session restore, Drive saves with metadata drift, recovery fingerprints, genuine conflicts, serialized refresh, import/export, offline protection, account isolation and responsive views passed.');
+  console.log(`${modern?'Modern':'Classic'} planner: Pages subpath, Google denial/expiry, session restore, Drive saves with metadata drift, recovery fingerprints, genuine conflicts, serialized refresh, import/export, offline protection, account isolation and responsive views passed.`);
 }finally{await browser.close();server?.kill();}

@@ -22,6 +22,9 @@ jobs:
       - run: npm test
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser
+      - run: npm run test:browser
+        env:
+          PLANNER_VARIANT: modern
   deploy:
     if: github.event_name != 'pull_request'
     needs: test
