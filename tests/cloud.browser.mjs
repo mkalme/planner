@@ -13,9 +13,9 @@ try{
   const context=await browser.newContext({viewport:{width:1440,height:1000},locale:'lv-LV'}),page=await context.newPage(),errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   let doc=null,version=0,failSave=false,account=1,deny=false,unauthorized=false;
-  const accounts=new Map(),heldReads=[];let holdReads=false,mediaReads=0;
+  const accounts=new Map(),heldReads=[],heldPatches=[];let holdReads=false,holdPatches=false,mediaReads=0,patches=0;
   await context.route('**/config.js',r=>r.fulfill({contentType:'application/javascript',body:'window.PLANNER_CONFIG={googleClientId:"test.apps.googleusercontent.com"}'}));
-  await context.route('https://accounts.google.com/gsi/client',r=>r.fulfill({contentType:'application/javascript',body:`window.oauthRequests=0;window.google={accounts:{oauth2:{initTokenClient(options){return {requestAccessToken(){window.oauthRequests++;setTimeout(()=>options.callback(window.mockDeny?{error:'access_denied'}:{access_token:'mock',expires_in:3600}),0);}}}}}};`}));
+  await context.route('https://accounts.google.com/gsi/client',r=>r.fulfill({contentType:'application/javascript',body:`window.oauthRequests=0;window.oauthLog=[];window.google={accounts:{oauth2:{initTokenClient(options){return {requestAccessToken(config){window.oauthRequests++;window.oauthLog.push({prompt:config?.prompt,hint:options.login_hint??null});setTimeout(()=>options.callback(window.mockDeny?{error:'access_denied'}:{access_token:'mock-'+window.oauthRequests,expires_in:3600}),0);}}}}}};`}));
   await context.route('https://www.googleapis.com/**',async route=>{
     const url=new URL(route.request().url());const method=route.request().method();
     const reply=(data,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});
@@ -26,7 +26,7 @@ try{
       const body=route.request().postData(),part=body.split('Content-Type: application/json\r\n\r\n').at(-1).split('\r\n--')[0];doc=JSON.parse(part);version=1;return reply({id:`file-${account}`,version:String(version)});
     }
     if(method==='PATCH'){
-      await new Promise(r=>setTimeout(r,150));
+      patches++;await new Promise(r=>setTimeout(r,150));if(holdPatches)await new Promise(resolve=>heldPatches.push(resolve));
       if(failSave)return reply({},500);
       doc=route.request().postDataJSON();version++;return reply({id:`file-${account}`,version:String(version)});
     }
@@ -85,7 +85,8 @@ try{
   const chosenColor=await page.locator('.task-color-button').evaluate(n=>n.style.getPropertyValue('--classic-color'));
   assert.equal(await page.locator('#task-priority').count(),0);
   await page.locator('#task-status').selectOption('progress');await page.locator('#task-form button[type=submit]').click();
-  await page.locator('#app[data-readonly]').waitFor();await ready();assert.equal(doc.tasks.length,1);assert.match(doc.tasks[0].comments[0].comment,/Statuss/);
+  await page.locator('#account[data-state=saving]').waitFor();assert.equal(await page.locator('#app[data-readonly]').count(),0,'Editing stays open while saving');
+  await ready();assert.equal(doc.tasks.length,1);assert.match(doc.tasks[0].comments[0].comment,/Statuss/);
   assert.equal(doc.tasks[0].hue,chosenHue,'The generated color saves with the task');
   assert.equal(doc.tasks[0].color,chosenColor,'Persist the actual color rather than relying on palette position');
   if(modern){
@@ -107,6 +108,19 @@ try{
   await page.locator(`${selector} [data-action=status]`).click();
   const statusMenuStyle=await page.locator('#quick-status [data-status=progress]').evaluate(n=>{const s=getComputedStyle(n);return {font:s.font,padding:s.padding,border:s.borderWidth};});
   await page.locator('#quick-status [data-status=complete]').click();await ready();assert.equal(doc.tasks[0].status,'complete');
+  // Edits made while an upload is still running show at once, queue, and save in order afterwards.
+  holdPatches=true;const patchesBefore=patches;
+  await page.locator(`${selector} [data-action=status]`).click();await page.locator('#quick-status [data-status=progress]').click();
+  for(let i=0;i<200&&!heldPatches.length;i++)await page.waitForTimeout(10);
+  assert.equal(heldPatches.length,1);assert.equal(await page.locator('#app[data-readonly]').count(),0,'Editing stays open during an upload');
+  await page.locator(`${selector} [data-action=status]`).click();await page.locator('#quick-status [data-status=new]').click();
+  await page.locator(`${selector} [data-action=status]`).click();await page.locator('#quick-status [data-status=complete]').click();
+  assert.equal(await page.locator(`${selector}.is-complete`).count(),1,'Queued edits show without waiting');
+  assert.equal(JSON.parse(await page.evaluate(()=>localStorage.getItem('mkalme-planner:pending:account-1'))).doc.tasks[0].status,'complete','The newest queued edit survives a reload');
+  holdPatches=false;for(const release of heldPatches.splice(0))release();
+  await ready();assert.equal(doc.tasks[0].status,'complete');assert.equal(patches,patchesBefore+2,'Queued edits upload together after the running save');
+  assert.deepEqual(doc.tasks[0].comments.filter(c=>c.kind==='status').slice(-3).map(c=>c.to),['progress','new','complete']);
+  assert.equal(await page.evaluate(()=>localStorage.getItem('mkalme-planner:pending:account-1')),null);
   await page.locator('#account summary').click();
   assert.deepEqual(await page.getByRole('button',{name:'Atjaunot',exact:true}).evaluate(n=>{const s=getComputedStyle(n);return {font:s.font,padding:s.padding,border:s.borderWidth};}),statusMenuStyle,'Account actions use the quick status menu row style');
   await page.screenshot({path:artifact('account-menu.png'),fullPage:true});
@@ -120,10 +134,24 @@ try{
   assert.deepEqual(dragOutline,{style:'dashed',width:'2px'});assert.deepEqual(await page.locator(selector).boundingBox(),sourceRect);
   await page.screenshot({path:artifact('drag-preview.png'),fullPage:true});
   await page.locator(selector).evaluate(n=>n.dispatchEvent(new DragEvent('dragend',{bubbles:true,dataTransfer:window.testDragTransfer})));
-  const originalExpiry=await page.evaluate(()=>JSON.parse(sessionStorage.getItem('mkalme-planner:google-session')).expiresAt);
+  const originalExpiry=await page.evaluate(()=>JSON.parse(localStorage.getItem('mkalme-planner:google-session')).expiresAt);
   await page.reload();await ready();assert.equal(await page.locator(`${selector}.is-complete`).count(),1);
   assert.equal(await page.evaluate(()=>window.oauthRequests),0,'Refresh restores the session without opening Google authorization');
-  assert.equal(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('mkalme-planner:google-session')).expiresAt),originalExpiry,'Refresh does not extend token lifetime');
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('mkalme-planner:google-session')).expiresAt),originalExpiry,'Refresh does not extend token lifetime');
+  // A new tab reuses the sign-in instead of starting signed out.
+  const tab=await context.newPage();tab.on('pageerror',e=>errors.push(e.message));await tab.goto(`http://127.0.0.1:4173${entry}`);
+  await tab.locator('#account [role=status]').filter({hasText:'Saglabāts'}).waitFor();
+  assert.equal(await tab.locator(`${selector}.is-complete`).count(),1);assert.equal(await tab.evaluate(()=>window.oauthRequests),0,'A new tab does not ask Google again');
+  await tab.close();
+  // An edit in the token's last minutes renews it quietly: the edit saves at once and the status never asks for access.
+  await page.evaluate(()=>{const key='mkalme-planner:google-session',saved=JSON.parse(localStorage.getItem(key));saved.expiresAt=Date.now()+5*60_000;localStorage.setItem(key,JSON.stringify(saved));});
+  await page.reload();await ready();assert.equal(await page.evaluate(()=>window.oauthRequests),0);
+  await page.locator(`${selector} [data-action=status]`).click();await page.locator('#quick-status [data-status=progress]').click();
+  await ready();assert.equal(doc.tasks[0].status,'progress');assert.equal(await page.locator('#account[data-state=reauth]').count(),0);
+  assert.equal(await page.evaluate(()=>window.oauthRequests),1);assert.deepEqual(await page.evaluate(()=>window.oauthLog.at(-1)),{prompt:'',hint:'account-1@example.test'});
+  assert.ok(await page.evaluate(()=>JSON.parse(localStorage.getItem('mkalme-planner:google-session')).expiresAt>Date.now()+50*60_000),'The renewed token is stored for other tabs');
+  await page.locator(`${selector} [data-action=status]`).click();await page.locator('#quick-status [data-status=complete]').click();await ready();
+  assert.equal(await page.evaluate(()=>window.oauthRequests),1,'A fresh token is not renewed again');
   await page.locator(`${selector} [data-action=edit]`).click();
   assert.equal(await page.locator('.task-color-button').evaluate(n=>Number(n.style.getPropertyValue('--task-hue'))),chosenHue,'The chosen color survives reload');
   assert.equal(await page.locator('.task-color-button').evaluate(n=>n.style.getPropertyValue('--classic-color')),chosenColor,'Reload uses the saved color');
@@ -159,7 +187,21 @@ try{
   await page.waitForTimeout(75);assert.equal(mediaReads,readsBefore+1,'Background refreshes are serialized across connectivity changes');
   assert.equal(await page.locator('[data-action=new]').first().isDisabled(),true);
   holdReads=false;for(const release of heldReads.splice(0))release();await ready();
-  unauthorized=true;await accountAction('Atjaunot');await page.locator('#account[data-state=error],#account[data-state=expired]').waitFor();assert.equal(await page.locator('[data-action=new]').first().isDisabled(),true);
+  // A rejected token never signs out. The next click renews it for the same account, without the account chooser.
+  unauthorized=true;await accountAction('Atjaunot');await page.locator('#account[data-state=reauth]').waitFor();
+  assert.equal(await page.locator('[data-action=new]').first().isDisabled(),false,'Editing stays open while access is renewed');
+  assert.match(await page.locator('#account summary').innerText(),/account-1@/);
+  let grants=await page.evaluate(()=>window.oauthRequests);
+  await page.locator('[data-view=week]').click();await ready();
+  assert.equal(await page.evaluate(()=>window.oauthRequests),grants+1);
+  assert.deepEqual(await page.evaluate(()=>window.oauthLog.at(-1)),{prompt:'',hint:'account-1@example.test'});
+  // An edit that meets a rejected token stays queued, then saves once a click renews access.
+  unauthorized=true;await page.locator('[data-action=new]').first().click();await page.locator('#task-title').fill('Rindā');await page.locator('#task-form button[type=submit]').click();
+  await page.locator('#account[data-state=reauth]').waitFor();assert.equal(doc.tasks.length,0);assert.equal(await page.locator('[data-task-id]').count(),1,'The edit shows while it waits for access');
+  assert.ok(await page.evaluate(()=>localStorage.getItem('mkalme-planner:pending:account-1')));
+  grants=await page.evaluate(()=>window.oauthRequests);
+  await page.locator('[data-view=week]').click();await ready();
+  assert.equal(await page.evaluate(()=>window.oauthRequests),grants+1);assert.equal(doc.tasks[0].title,'Rindā');
   await accountAction('Iziet');assert.equal(await page.locator('[data-task-id]').count(),0);assert.doesNotMatch(await page.locator('#account').innerText(),/account-1@/);
   accounts.set(1,{doc,version});account=2;doc=null;version=0;await connect();assert.deepEqual(doc.tasks,[]);
   for(const viewport of [{width:2560,height:1440},{width:1920,height:1080},{width:1440,height:900},{width:1024,height:600},{width:640,height:480},{width:390,height:844}]){
@@ -199,15 +241,21 @@ try{
   assert.equal(await page.locator(`.day-column.is-holiday[data-drop-date="${holidayKey}"]`).count(),1);
   await page.locator('[data-view=month]').click();assert.equal(await page.locator(`.month-cell.is-holiday[data-drop-date="${holidayKey}"]`).count(),1);
   await page.locator('[data-view=day]').click();assert.equal(await page.locator(`.daily-list.is-holiday[data-drop-date="${holidayKey}"]`).count(),1);
-  // An expired or revoked saved grant must never expose tasks or start a popup automatically.
-  await page.evaluate(()=>{const key='mkalme-planner:google-session',saved=JSON.parse(sessionStorage.getItem(key));saved.expiresAt=Date.now()-1;sessionStorage.setItem(key,JSON.stringify(saved));});
-  await page.reload();await page.locator('#account[data-state=disconnected]').waitFor();
+  // An expired or revoked saved grant never exposes tasks or opens Google's window by itself.
+  // It keeps the account, so one click continues without the account chooser.
+  const session=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('mkalme-planner:google-session')));
+  await page.evaluate(()=>{const key='mkalme-planner:google-session',saved=JSON.parse(localStorage.getItem(key));saved.expiresAt=Date.now()-1;localStorage.setItem(key,JSON.stringify(saved));});
+  await page.reload();await page.locator('#account[data-state=reauth]').waitFor();
   assert.equal(await page.locator('[data-task-id]').count(),0);assert.equal(await page.evaluate(()=>window.oauthRequests),0);
-  assert.equal(await page.evaluate(()=>sessionStorage.getItem('mkalme-planner:google-session')),null);
-  await connect();unauthorized=true;await page.reload();await page.locator('#account[data-state=error]').waitFor();
-  assert.equal(await page.locator('[data-task-id]').count(),0);assert.equal(await page.evaluate(()=>sessionStorage.getItem('mkalme-planner:google-session')),null);
-  await connect();await accountAction('Iziet');await page.reload();await page.locator('#account[data-state=disconnected]').waitFor();
-  assert.equal(await page.locator('[data-task-id]').count(),0);assert.equal(await page.evaluate(()=>sessionStorage.getItem('mkalme-planner:google-session')),null);
+  assert.equal((await session()).token,undefined);assert.equal((await session()).user.id,'account-2');
+  await accountAction('Atjaunot piekļuvi');await ready();
+  assert.equal(await page.evaluate(()=>window.oauthRequests),1);assert.deepEqual(await page.evaluate(()=>window.oauthLog.at(-1)),{prompt:'',hint:'account-2@example.test'});
+  assert.ok(await page.locator('[data-task-id]').count()>0,'Renewed access loads the tasks');
+  unauthorized=true;await page.reload();await page.locator('#account[data-state=reauth]').waitFor();
+  assert.equal(await page.locator('[data-task-id]').count(),0);assert.equal((await session()).token,undefined);assert.equal(await page.evaluate(()=>window.oauthRequests),0);
+  await accountAction('Atjaunot piekļuvi');await ready();
+  await accountAction('Iziet');await page.reload();await page.locator('#account[data-state=disconnected]').waitFor();
+  assert.equal(await page.locator('[data-task-id]').count(),0);assert.equal(await session(),null);
   assert.deepEqual(errors,[]);
-  console.log(`${modern?'Modern':'Classic'} planner: Pages subpath, Google denial/expiry, session restore, Drive saves with metadata drift, recovery fingerprints, genuine conflicts, serialized refresh, import/export, offline protection, account isolation and responsive views passed.`);
+  console.log(`${modern?'Modern':'Classic'} planner: Pages subpath, Google denial/expiry, session restore, new-tab sign-in, click renewal, edits queued during saves, Drive saves with metadata drift, recovery fingerprints, genuine conflicts, serialized refresh, import/export, offline protection, account isolation and responsive views passed.`);
 }finally{await browser.close();server?.kill();}

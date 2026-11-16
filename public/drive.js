@@ -32,13 +32,15 @@ export class DriveStore{
     const body=`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(doc)}\r\n--${boundary}--`;
     await this.account.request(`https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,version`,{method:'POST',headers:{'Content-Type':`multipart/related; boundary=${boundary}`},body});
   }
+  // expectedHash: the fingerprint the edit was based on, or a list of them. A queued edit may also
+  // build on this browser's own earlier upload whose result is not known yet.
   async save(doc,expectedVersion,expectedHash=null){
-    const targetHash=await documentFingerprint(doc);
-    if(expectedHash!==null&&!/^[a-f0-9]{64}$/.test(expectedHash))throw new Error('Nederīga nesaglabāto izmaiņu atkopšanas informācija. Lejupielādējiet izmaiņas un pārlādējiet datus.');
+    const targetHash=await documentFingerprint(doc),expected=expectedHash===null?null:[].concat(expectedHash);
+    if(expected&&(!expected.length||expected.some(hash=>!/^[a-f0-9]{64}$/.test(hash))))throw new Error('Nederīga nesaglabāto izmaiņu atkopšanas informācija. Lejupielādējiet izmaiņas un pārlādējiet datus.');
     const remote=await this.read();
     // An upload may have succeeded even if its response was lost. Verify all data, not only writeId.
     if(this.baseHash===targetHash)return remote;
-    if(expectedHash!==null?this.baseHash!==expectedHash:this.version!==expectedVersion)throw new ConflictError();
+    if(expected?!expected.includes(this.baseHash):this.version!==expectedVersion)throw new ConflictError();
     await this.account.request(`https://www.googleapis.com/upload/drive/v3/files/${this.fileId}?uploadType=media&fields=id,version`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(doc)});
     const saved=await this.read();if(this.baseHash!==targetHash)throw new ConflictError();return saved;
   }

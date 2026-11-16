@@ -86,3 +86,14 @@ test('document fingerprints ignore object property order but preserve actual dat
   assert.equal(await documentFingerprint(original),await documentFingerprint(reordered));
   assert.notEqual(await documentFingerprint(original),await documentFingerprint(documentFor([])));
 });
+
+test('a queued edit may build on an earlier upload from this browser but not on another device',async()=>{
+  const original=documentFor([]),inFlight=documentFor([]),queued=documentFor([]);
+  let remote=inFlight,uploads=0;
+  const store=new DriveStore({request:async(url,options)=>{if(options){uploads++;remote=JSON.parse(options.body);}return url.includes('alt=media')?structuredClone(remote):{id:'f',version:'3'};}});store.fileId='f';
+  const accepted=[await documentFingerprint(original),await documentFingerprint(inFlight)];
+  assert.deepEqual(await store.save(queued,'1',accepted),queued);assert.equal(uploads,1);
+  remote=documentFor([]);
+  await assert.rejects(()=>store.save(documentFor([]),'1',accepted),ConflictError);assert.equal(uploads,1);
+  await assert.rejects(()=>store.save(documentFor([]),'1',[]),/atkopšanas/);
+});
